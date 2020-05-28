@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NotificationActivity"
+    android:orientation="vertical"
+    android:background="@drawable/new_background"
+    >
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/notification_question"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:layout_marginTop="30dp"
+        android:textColor="@color/colorWhite"
+        android:layout_alignParentTop="true"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|top"
+            >
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_working_icon"
+                    android:contentDescription="@string/working"
+                    android:layout_gravity="center|top"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/working"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                android:layout_marginHorizontal="20dp"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_working_out_icon"
+                    android:contentDescription="@string/working_out"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/working_out"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_sleeping_icon"
+                    android:contentDescription="@string/sleeping"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sleeping"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|top"
+            >
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_cooking_icon"
+                    android:contentDescription="@string/cooking"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cooking"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                android:layout_marginHorizontal="20dp"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_tv_icon"
+                    android:contentDescription="@string/watching_tv"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/watching_tv"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_shopping_icon"
+                    android:contentDescription="@string/shopping"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/shopping"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|top"
+            >
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_reading_icon"
+                    android:contentDescription="@string/reading"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/reading"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                android:layout_marginHorizontal="20dp"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_commuting_icon"
+                    android:contentDescription="@string/commuting"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/commuting"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center|top"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_games_icon"
+                    android:contentDescription="@string/playing_games"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/playing_games"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+   <Button
+       android:layout_width="70dp"
+       android:layout_height="70dp"
+       android:background="@drawable/button_validate"
+       android:onClick="addCheckActivity"
+       android:layout_marginBottom="30dp"
+       android:layout_alignParentBottom="true"
+       android:layout_centerHorizontal="true"
+       />
+
+</RelativeLayout>

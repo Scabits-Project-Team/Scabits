@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="sign_text_size">25sp</dimen>
+    <dimen name="item_activity_title">20sp</dimen>
+    <dimen name="margin_item_start">5dp</dimen>
+    <dimen name="padding_item_expected">15dp</dimen>
+    <dimen name="marginTop_item">2dp</dimen>
+    <dimen name="max_width_item">230dp</dimen>
+    <dimen name="activity_text_size">16sp</dimen>
+    <dimen name="image_notification_size">50dp</dimen>
+    <dimen name="item_width">100dp</dimen>
+    <dimen name="item_height">110dp</dimen>
+</resources>

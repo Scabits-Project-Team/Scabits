@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "718924572274",
+    "firebase_url": "https://scabits.firebaseio.com",
+    "project_id": "scabits",
+    "storage_bucket": "scabits.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:718924572274:android:f79ce666f8990e0a0484eb",
+        "android_client_info": {
+          "package_name": "fr.jaimys.scabits"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "718924572274-ubpaerk0jkknoip3k20mdckeu8engjr8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fr.jaimys.scabits",
+            "certificate_hash": "244bb06068e3eab72a18f1c3bd3d8da207ad735e"
+          }
+        },
+        {
+          "client_id": "718924572274-p3tbp9vk5kpva2b55bb0nfesuo0cbnat.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDibuqInCK4fvLnpGeLHvVRYDY0NGFclQs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "718924572274-p3tbp9vk5kpva2b55bb0nfesuo0cbnat.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
