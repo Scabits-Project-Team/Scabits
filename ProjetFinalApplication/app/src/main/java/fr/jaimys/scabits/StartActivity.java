@@ -8,7 +8,6 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
@@ -25,13 +24,10 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class StartActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity implements LocationListener, SensorEventListener {
 
-    /* implements LocationListener, SensorEventListener {
-
-}
     //_________________________________________fields_______________________________________________
-    private final int SPLASH_SCREEN_TIMEOUT = 3000;
+    //private final int SPLASH_SCREEN_TIMEOUT = 3000;
     private LocationManager locationManager = null;
     private static final int PERM_REQ_ID = 1234;
     private boolean deniedForever = false;
@@ -120,7 +116,7 @@ public class StartActivity extends AppCompatActivity {
         };
 
         //Handler post delayed
-        new Handler().postDelayed(runnable, SPLASH_SCREEN_TIMEOUT);    /////
+        new Handler().postDelayed(runnable, SPLASH_SCREEN_TIMEOUT);  */
     }
 
     @Override
@@ -284,5 +280,4 @@ public class StartActivity extends AppCompatActivity {
     public void onProviderDisabled(String provider) {
 
     }
-}*/
 }

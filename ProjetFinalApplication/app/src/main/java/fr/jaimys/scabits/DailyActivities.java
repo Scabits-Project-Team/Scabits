@@ -1,28 +1,25 @@
 package fr.jaimys.scabits;
 
 import java.util.HashMap;
-import java.util.List;
-
 public class DailyActivities {
 
     //_________________________________________fields_______________________________________________
-    private HashMap<String, List<ActivityDone>> activitiesParHour;  //Hour - activitylist List<String>
+    private HashMap<String, Integer> activities; //activity - nombre d'occurences
 
     //_________________________________________constructors_________________________________________
     public DailyActivities() {
         this(null);
     }
 
-    public DailyActivities(HashMap<String, List<ActivityDone>> activitiesParHour) {
-        this.activitiesParHour = activitiesParHour;
+    public DailyActivities(HashMap<String, Integer> activities) {
+        this.activities = activities;
     }
 
     //_________________________________________methods______________________________________________
-
-    public HashMap<String, List<ActivityDone>> getActivitiesParHour() {
-        return activitiesParHour;
+    public HashMap<String, Integer>getActivities() {
+        return activities;
     }
-    public void setActivitiesParHour(HashMap<String, List<ActivityDone>> activitiesParHour) {
-        this.activitiesParHour = activitiesParHour;
+    public void setActivities(HashMap<String, Integer> activities) {
+        this.activities = activities;
     }
 }

@@ -9,5 +9,6 @@
     <color name="colorCyan">#03A8DA</color>
     <color name="colorBlack">#000000</color>
     <color name="colorBackgound">#301030</color>
+    <color name="colorNull">#00E9E7E7</color>
     <color name="colorGreyLight">#E9E7E7</color>
 </resources>

@@ -4,13 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,10 +20,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
 public class NotificationActivity extends AppCompatActivity {
@@ -40,6 +34,8 @@ public class NotificationActivity extends AppCompatActivity {
     private View currentView = null;
     private String activity = "Aucune";
     private long timestamp;
+    private User user = null;
+    private ActivityCheck activityCheck;
 
 
     //_________________________________________methods______________________________________________
@@ -48,14 +44,34 @@ public class NotificationActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification);
 
+        //Recuperation of the AcivityCheck and timestamp
+        this.activityCheck = (ActivityCheck) getIntent().getSerializableExtra("activityCheck");
+        assert this.activityCheck != null;
+        this.timestamp = this.activityCheck.getTime();
+
         //Recuperation of the login
         this.pseudo = getIntent().getStringExtra("pseudo");
         assert this.pseudo != null;
         referenceUser = referenceData.child(this.pseudo).child("activityChecks");
 
-        //Set the timestamp (TODO : Recup the timestamp get before)
-        this.timestamp = System.currentTimeMillis();
+        //Set the user profile
+        referenceData.child(this.pseudo).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    setUser(dataSnapshot.getValue(User.class));
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void setUser(User value) {
+        this.user = value;
     }
 
     public void addCheckActivity(View view) {
@@ -63,42 +79,26 @@ public class NotificationActivity extends AppCompatActivity {
         //If an activity is selected
         if (this.currentView != null && !this.activity.equals("Aucune")) {
 
-            //Search for sensors
-            SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-            assert sensorManager != null;
-            int light = Sensor.TYPE_LIGHT;
-
-            //Add Sensors and values TODO : Here check the real values
-            List<SensorData> listeSensor = new ArrayList<>();
-            HashMap<String, Float> value1 = new HashMap<>();
-            value1.put("x", (float) 10); value1.put("y", (float) 11); value1.put("z", (float) 12);
-            HashMap<String, Float> value2 = new HashMap<>();
-            value2.put("x", (float) 13); value2.put("y", (float) 14); value2.put("z", (float) 15);
-            HashMap<String, Float> value3 = new HashMap<>();
-            value3.put("x", (float) 16); value3.put("y", (float) 17); value3.put("z", (float) 18);
-            listeSensor.add(new SensorData(light, true, value1, value2, value3));
-            listeSensor.add(new SensorData(Sensor.TYPE_ACCELEROMETER, true, value1, value2, value3));
-            listeSensor.add(new SensorData(Sensor.TYPE_PROXIMITY, false, value1, value2, value3));
-            listeSensor.add(new SensorData(100, true, value1, value2, value3));
-
-            String excpectedActivity = "Jouer à des jeux";
+            //Set the real activity
+            this.activityCheck.setRealActivity(getActivity());
 
             //Add the new checkActivity
             referenceUser.child(Objects.requireNonNull(referenceUser.push().getKey())).setValue(
-                    new ActivityCheck(this.timestamp, listeSensor, this.activity, excpectedActivity));
-
+                activityCheck);
 
             //Add in the agenda this Activity if doesnt exist yet
             addActivityInAgenda();
+
+            //Add location if it's work or shopping
+            addLocation(activityCheck.getLocation());
 
             //Notify the user
             Toast.makeText(getApplicationContext(), "Les données ont été ajoutées",
                     Toast.LENGTH_SHORT).show();
 
             //Return to the account page
-            Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
-            intent.putExtra("pseudo",  this.pseudo);
-            startActivity(intent);
+            getIntent().putExtra("pseudo",  this.pseudo);
+            //startActivity(getIntent());
             finish();
         }
         else {
@@ -108,6 +108,40 @@ public class NotificationActivity extends AppCompatActivity {
         }
     }
 
+    private void addLocation(Location location) {
+        //Change the place where the user works
+        if (this.activity.equals("Travailler")) {
+            referenceData.child(pseudo).child("work").
+                    setValue(location);
+        }
+        //Add a new shopping place if needed
+        else if (this.activity.equals("Magasiner")) {
+            boolean addLoc = true;
+            if (this.user.getLocations() != null) {
+
+                for (Location loc : this.user.getLocations().values()) {
+                    if (loc.equals(location)) {
+                        addLoc = false;
+                        break;
+                    }
+                }
+                if (addLoc) {
+                    referenceData.child(pseudo).child("locations").child(Objects.requireNonNull(
+                            referenceData.child(pseudo).child("locations").push().getKey())).
+                            setValue(location);
+                }
+            }
+            else {
+                referenceData.child(pseudo).child("locations").child(Objects.requireNonNull(
+                        referenceData.child(pseudo).child("locations").push().getKey())).
+                        setValue(location);
+            }
+        }
+
+    }
+
+
+
     @SuppressLint("RtlHardcoded")
     public void selectItem(View view) {
         //Select and change the item if needed
@@ -115,18 +149,14 @@ public class NotificationActivity extends AppCompatActivity {
         if (view.equals(this.currentView)) {
             this.currentView = null;
             view.setBackground(null);
-            linearLayout.setGravity(Gravity.CENTER|Gravity.TOP);
             this.activity = "Aucune";
         }
         else {
             if (this.currentView != null) {
-                LinearLayout linearLayoutOld = (LinearLayout) this.currentView;
                 this.currentView.setBackground(null);
-                linearLayoutOld.setGravity(Gravity.CENTER|Gravity.TOP);
             }
             this.currentView = view;
             linearLayout.setBackground(getResources().getDrawable(R.drawable.button_item_select_design));
-            linearLayout.setGravity(Gravity.CENTER);
             TextView activity = (TextView) linearLayout.getChildAt(1);
             this.activity = activity.getText().toString();
         }
@@ -155,7 +185,7 @@ public class NotificationActivity extends AppCompatActivity {
 
                 //Find the day and set the activity if needed
                 assert user != null;
-                HashMap<String, DailyActivities> basicWeek;
+                HashMap<String, HashMap<String, DailyActivities>> basicWeek;
                 if (user.getBasicWeek() != null) {
                     basicWeek = user.getBasicWeek();
                 }
@@ -167,56 +197,47 @@ public class NotificationActivity extends AppCompatActivity {
                 if (!basicWeek.containsKey(day)) {
 
                     //Create a new day, hour and activity
-                    HashMap<String, List<ActivityDone>> activitiesParHour = new HashMap<>();
-                    List<ActivityDone> activities = new ArrayList<>();
-                    activities.add(new ActivityDone(getActivity(),1));
-                    activitiesParHour.put(hour, activities);
-                    DailyActivities dailyActivities = new DailyActivities(activitiesParHour);
-                    basicWeek.put(day, dailyActivities);
+                    HashMap<String, DailyActivities> activitiesHashMap = new HashMap<>();
+                    HashMap<String, Integer> activities = new HashMap<>();
+                    activities.put(getActivity(),1);
+                    activitiesHashMap.put(hour, new DailyActivities(activities));
+                    basicWeek.put(day, activitiesHashMap);
 
                     //Add the day, hour and activity
                     referenceData.child(pseudo).child("basicWeek").setValue(basicWeek);
                 }
                 else {
-                    HashMap<String, List<ActivityDone>> activitiesParHour =
-                            Objects.requireNonNull(basicWeek.get(day)).getActivitiesParHour();
-
+                    HashMap<String, DailyActivities> activitiesParHour = basicWeek.get(day);
+                    assert activitiesParHour != null;
                     if (activitiesParHour.containsKey(hour))
                     {
                         //Check if this activity already exists
-                        List<ActivityDone> activities = activitiesParHour.get(hour);
+                        DailyActivities activities = activitiesParHour.get(hour);
                         assert activities != null;
-                        int index = -1;
-                        for (int i = 0; i < activities.size(); i++) {
-                            if (activities.get(i).getActivity().equals(getActivity())) {
-                                index = i;
-                                break;
-                            }
-                        }
 
                         //If the activity is not already in the list
-                        if (index == -1) {
-                            //Add the activity at the day and hour
-                            activities.add(new ActivityDone(getActivity(),1));
-                            referenceData.child(pseudo).child("basicWeek").child(day).
-                                    child("activitiesParHour").child(hour).
-                                    setValue(activities);
+                        if (activities.getActivities().containsKey(getActivity())) {
+                            //Increase the number of time this activity has been done
+                            Integer nbOccurences = Objects.requireNonNull(activities.getActivities().
+                                    get(getActivity()));
+
+                            activities.getActivities().remove(getActivity());
+                            activities.getActivities().put(getActivity(), nbOccurences+1);
+
                         }
                         else {
-                            //Increase the number of time this activity has been done
-                            activities.get(index).setOccurence(activities.get(index).getOccurence() + 1);
-                            referenceData.child(pseudo).child("basicWeek").child(day).
-                                    child("activitiesParHour").child(hour).
-                                    setValue(activities);
+                            //Add the activity at the day and hour
+                            activities.getActivities().put(getActivity(),1);
                         }
+                        referenceData.child(pseudo).child("basicWeek").child(day).
+                                child(hour).setValue(activities);
                     }
                     else {
                         //Add the activity at the day and create a new hour
-                        List<ActivityDone> activities = new ArrayList<>();
-                        activities.add(new ActivityDone(getActivity(),1));
-                        activitiesParHour.put(hour, activities);
-                        referenceData.child(pseudo).child("basicWeek").child(day).
-                                child("activitiesParHour").setValue(activitiesParHour);
+                        HashMap<String, Integer> activities = new HashMap<>();
+                        activities.put(getActivity(),1);
+                        activitiesParHour.put(hour, new DailyActivities(activities));
+                        referenceData.child(pseudo).child("basicWeek").child(day).setValue(activitiesParHour);
                     }
                 }
 

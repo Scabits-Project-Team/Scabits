@@ -12,6 +12,9 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 
 public class HistoricActivity extends AppCompatActivity {
@@ -43,6 +47,8 @@ public class HistoricActivity extends AppCompatActivity {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private String pseudo;
+    private ProgressBar loading;
+    private TextView noItemText;
 
 
     //_________________________________________methods______________________________________________
@@ -51,9 +57,12 @@ public class HistoricActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_historic);
 
+        //Set the loading
+        this.loading = findViewById(R.id.loadHistoric);
+        this.noItemText = findViewById(R.id.no_item_text);
+
         //Recuperation of the login
         this.pseudo = getIntent().getStringExtra("pseudo");
-
         //Instantiation of the list
         habitsArrayList = new ArrayList<>();
 
@@ -69,9 +78,6 @@ public class HistoricActivity extends AppCompatActivity {
         //Add some data
         referenceData.child(this.pseudo).child("activityChecks").orderByChild("time")
                 .addListenerForSingleValueEvent(valueEventListener);
-
-        //Show elements
-        Log.d(TAG,habitsArrayList.toString());
 
         //Notify data changed
         habitsAdapter.notifyDataSetChanged();
@@ -117,13 +123,14 @@ public class HistoricActivity extends AppCompatActivity {
                     //Set the sensors used by getting the number
                     StringBuilder sensors = new StringBuilder();
                     int i = 1;
-                    for (SensorData sd : act.getSensorsInformations()) {
-                        if (sd.isUsed()) {
-                            switch (sd.getSensor()) {
-                                case 1 : sensors.append("Accélération").append(", "); break;
-                                case 5 : sensors.append("Luminosité").append(", "); break;
-                                case 8 : sensors.append("Proximité").append(", "); break;
-                                case 100 : sensors.append("Localisation").append(", "); break;
+                    for (String key : act.getSensorsInformations().keySet())
+                    {
+                        if (Objects.requireNonNull(act.getSensorsInformations().get(key)).isUsed()) {
+                            switch (key) {
+                                case "1" : sensors.append("Accélération").append(", "); break;
+                                case "5" : sensors.append("Luminosité").append(", "); break;
+                                case "8" : sensors.append("Proximité").append(", "); break;
+                                case "100" : sensors.append("Localisation").append(", "); break;
                                 default: sensors.append("Inconnu").append(", "); break;
                             }
                         }
@@ -136,6 +143,10 @@ public class HistoricActivity extends AppCompatActivity {
                                    tag,sensorStr, time));
                 }
             }
+            else {
+                noItemText.setVisibility(View.VISIBLE);
+            }
+            hideLoading();
             habitsAdapter.notifyDataSetChanged();
         }
 
@@ -144,6 +155,10 @@ public class HistoricActivity extends AppCompatActivity {
             //Never used
         }
     };
+
+    private void hideLoading() {
+        this.loading.setVisibility(View.INVISIBLE);
+    }
 
     public void backAccountPage(View view) {
         //Launch Account Activity and pass the pseudo

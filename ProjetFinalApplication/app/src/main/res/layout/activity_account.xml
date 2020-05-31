@@ -13,24 +13,27 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="50dp"
+        android:layout_marginTop="30dp"
         android:text="@string/analysis"
         android:textSize="40sp"
         android:textAlignment="center"
         android:textColor="@color/colorGrey"
         />
 
-    <ProgressBar
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:indeterminate="true" />
+        android:text="@string/example_time"
+        android:textSize="50sp"
+        android:textColor="@color/colorWhite"
+        android:layout_marginBottom="100dp"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:layout_marginTop="50dp"
         >
 
         <Button
@@ -39,7 +42,7 @@
             android:layout_height="80dp"
             android:layout_marginEnd="30dp"
             android:background="@drawable/logout"
-            />
+            tools:ignore="ButtonStyle" />
 
         <Button
             android:id="@+id/history_button"
@@ -50,7 +53,7 @@
             android:textColor="@color/colorGrey"
             android:textSize="20sp"
             android:background="@drawable/button_sign_design"
-            />
+            tools:ignore="ButtonStyle" />
 
     </LinearLayout>
 

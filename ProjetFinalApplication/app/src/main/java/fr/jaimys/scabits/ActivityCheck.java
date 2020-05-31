@@ -1,24 +1,27 @@
 package fr.jaimys.scabits;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 
-public class ActivityCheck {
+public class ActivityCheck implements Serializable {
 
     //_________________________________________fields_______________________________________________
     private long time;
-    private List<SensorData> sensorsInformations;
+    private Location location;
+    private HashMap<String, SensorData> sensorsInformations;
     private String realActivity;
     private String expectedActivity;
 
     //_________________________________________constructors_________________________________________
     public ActivityCheck() {
-        this(0,null,null,null);
+        this(0, null, null,null,null);
     }
 
-    public ActivityCheck(long time, List<SensorData> sensorsInformations,
+    public ActivityCheck(long time, Location location, HashMap<String, SensorData>  sensorsInformations,
                          String realActivity, String expectedActivity) {
         this.time = time;
+        this.location = location;
         this.sensorsInformations = sensorsInformations;
         this.realActivity = realActivity;
         this.expectedActivity = expectedActivity;
@@ -32,10 +35,17 @@ public class ActivityCheck {
         this.time = time;
     }
 
-    public List<SensorData> getSensorsInformations() {
+    public Location getLocation() {
+        return location;
+    }
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public HashMap<String, SensorData>  getSensorsInformations() {
         return sensorsInformations;
     }
-    public void setSensorsInformations(List<SensorData> sensorsInformations) {
+    public void setSensorsInformations(HashMap<String, SensorData>  sensorsInformations) {
         this.sensorsInformations = sensorsInformations;
     }
 

@@ -38,7 +38,7 @@
             <LinearLayout
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
@@ -63,13 +63,13 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="@dimen/item_width"
+                android:layout_width="110dp"
                 android:layout_height="@dimen/item_height"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
-                android:layout_marginHorizontal="20dp"
+                android:layout_marginHorizontal="10dp"
                 >
 
                 <ImageView
@@ -93,7 +93,7 @@
             <LinearLayout
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
@@ -128,7 +128,7 @@
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
                 android:layout_marginTop="20dp"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
@@ -152,42 +152,14 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="@dimen/item_width"
+                android:layout_width="110dp"
                 android:layout_height="@dimen/item_height"
                 android:layout_marginTop="20dp"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
-                android:layout_marginHorizontal="20dp"
-                >
-
-                <ImageView
-                    android:layout_width="@dimen/image_notification_size"
-                    android:layout_height="@dimen/image_notification_size"
-                    android:src="@drawable/item_tv_icon"
-                    android:contentDescription="@string/watching_tv"
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/watching_tv"
-                    android:textAlignment="center"
-                    android:textSize="@dimen/activity_text_size"
-                    android:textColor="@color/colorWhite"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="@dimen/item_width"
-                android:layout_height="@dimen/item_height"
-                android:layout_marginTop="20dp"
-                android:gravity="center|top"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables"
-                android:onClick="selectItem"
+                android:layout_marginHorizontal="10dp"
                 >
 
                 <ImageView
@@ -208,19 +180,11 @@
 
             </LinearLayout>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center|top"
-            >
-
             <LinearLayout
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
                 android:layout_marginTop="20dp"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
@@ -237,21 +201,58 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/reading"
+                    android:textAlignment="center"
                     android:textSize="@dimen/activity_text_size"
                     android:textColor="@color/colorWhite"
                     />
 
             </LinearLayout>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|top"
+            >
+
             <LinearLayout
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
                 android:layout_marginTop="20dp"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
-                android:layout_marginHorizontal="20dp"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_tv_icon"
+                    android:contentDescription="@string/watching_tv"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/watching_tv"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    android:textAlignment="center"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="110dp"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                android:layout_marginHorizontal="10dp"
                 >
 
                 <ImageView
@@ -276,7 +277,7 @@
                 android:layout_width="@dimen/item_width"
                 android:layout_height="@dimen/item_height"
                 android:layout_marginTop="20dp"
-                android:gravity="center|top"
+                android:gravity="center"
                 android:orientation="vertical"
                 tools:ignore="UseCompoundDrawables"
                 android:onClick="selectItem"
@@ -307,8 +308,8 @@
 
 
    <Button
-       android:layout_width="70dp"
-       android:layout_height="70dp"
+       android:layout_width="80dp"
+       android:layout_height="80dp"
        android:background="@drawable/button_validate"
        android:onClick="addCheckActivity"
        android:layout_marginBottom="30dp"

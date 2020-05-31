@@ -1,7 +1,6 @@
 package fr.jaimys.scabits;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class User {
 
@@ -11,14 +10,14 @@ public class User {
 
     //List of each data collection done
     private HashMap<String, ActivityCheck> activityChecks;
-    private List<Double> home; //Home location
-    private List<Double> work; //Work location
+    private Location home; //Home location
+    private Location work; //Work location
 
     //Location already registered by the apps
-    private HashMap<String, List<Double>> locations;
+    private HashMap<String, Location> locations;
 
     //Agenda of the user : Activity each day, each hour
-    private HashMap<String, DailyActivities> basicWeek;
+    private HashMap<String, HashMap<String, DailyActivities>> basicWeek;
 
     //_________________________________________constructors_________________________________________
     public User() {
@@ -27,8 +26,8 @@ public class User {
     }
 
     public User(String password, String model, HashMap<String, ActivityCheck> activityChecks,
-                List<Double> home, List<Double> work, HashMap<String, List<Double>> locations, HashMap<String,
-                DailyActivities> basicWeek) {
+                Location home, Location work, HashMap<String, Location> locations,
+                HashMap<String, HashMap<String, DailyActivities>> basicWeek) {
         this.password = password;
         this.model = model;
         this.activityChecks = activityChecks;
@@ -60,31 +59,31 @@ public class User {
         this.activityChecks = activityChecks;
     }
 
-    public List<Double>  getHome() {
+    public Location  getHome() {
         return home;
     }
-    public void setHome(List<Double>  home) {
+    public void setHome(Location  home) {
         this.home = home;
     }
 
-    public List<Double>  getWork() {
+    public Location  getWork() {
         return work;
     }
-    public void setWork(List<Double> work) {
+    public void setWork(Location work) {
         this.work = work;
     }
 
-    public HashMap<String, List<Double> > getLocations() {
+    public HashMap<String, Location > getLocations() {
         return locations;
     }
-    public void setLocations(HashMap<String, List<Double> > locations) {
+    public void setLocations(HashMap<String, Location > locations) {
         this.locations = locations;
     }
 
-    public HashMap<String, DailyActivities> getBasicWeek() {
+    public HashMap<String, HashMap<String, DailyActivities>> getBasicWeek() {
         return basicWeek;
     }
-    public void setBasicWeek(HashMap<String, DailyActivities> basicWeek) {
+    public void setBasicWeek(HashMap<String, HashMap<String, DailyActivities>> basicWeek) {
         this.basicWeek = basicWeek;
     }
 }

@@ -5,7 +5,7 @@
     <string name="sign_up" translatable="false">Inscription</string>
     <string name="password" translatable="false">Mot de passe</string>
     <string name="login" translatable="false">Pseudo</string>
-    <string name="analysis" translatable="false">Analyse de vos données en cours</string>
+    <string name="analysis" translatable="false">Prochaine prise de données dans :</string>
     <string name="expected" translatable="false">Estimation</string>
     <string name="activity" translatable="false">Activité</string>
     <string name="sensors_used" translatable="false">Capteurs utilisés</string>
@@ -23,8 +23,12 @@
     <string name="commuting">Prendre les transports</string>
     <string name="playing_games">Jouer à des jeux</string>
     <string name="hint_projet">Description of the projet here</string>
-    <string name="location_home">Adresse postale</string>
+    <string name="location_home">Adresse du domicile</string>
     <string name="add_check">Lancer une notification</string>
     <string name="logo_description">Logo de l\'application</string>
     <string name="basic_time">08/07/2000 \n 11:17</string>
+    <string name="historic_no_item">Aucune activité n\'a encore été enregistré</string>
+    <string name="example_time">10:15</string>
+    <string name="country">Région et pays</string>
+    <string name="welcome">Welcome</string>
 </resources>

@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -31,6 +32,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -40,8 +42,11 @@ public class SignupActivity extends AppCompatActivity {
     private DatabaseReference referenceData = database.getReference();
     private EditText new_pseudo;
     private EditText new_password;
-    private EditText new_location;
-    private ProgressBar loading;
+    //private ProgressBar loading;
+    private EditText new_location_city;
+    private EditText new_location_number;
+    private EditText new_location_country;
+    private EditText new_location_road;
 
 
     //_________________________________________methods______________________________________________
@@ -50,12 +55,14 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-
         //Recuperation of all EditText
         this.new_password = findViewById(R.id.new_password);
         this.new_pseudo = findViewById(R.id.new_pseudo);
-        this.new_location = findViewById(R.id.new_location);
-        this.loading = findViewById(R.id.progessbar_signup);
+        this.new_location_city = findViewById(R.id.new_location_city);
+        this.new_location_number = findViewById(R.id.new_location_number);
+        this.new_location_country = findViewById(R.id.new_location_country);
+        this.new_location_road = findViewById(R.id.new_location_road);
+        //this.loading = findViewById(R.id.progessbar_signup);
 
 
         //Setting of the buttons up
@@ -65,18 +72,19 @@ public class SignupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (getPseudo().length() < 4) {
                     //Pseudo requires at least 4 characters
-                    Toast.makeText(getApplicationContext(), "Vous devez rentrer un pseudo " +
+                    Toast.makeText(getApplicationContext(), "Vous devez saisir un pseudo " +
                                     "contenant au moins 4 caractères", Toast.LENGTH_SHORT).show();
                 }
                 else if (getPassord().length() < 4) {
                     //Password requires at least 4 characters
-                    Toast.makeText(getApplicationContext(), "Vous devez rentrer un mot " +
+                    Toast.makeText(getApplicationContext(), "Vous devez saisir un mot " +
                             "de passe contenant au moins 4 caractères", Toast.LENGTH_SHORT).show();
                 }
-                else if (getLocation().isEmpty()) {
+                else if (getNumber().isEmpty() || getRoad().isEmpty() || getCity().isEmpty() ||
+                         getCountry().isEmpty()) {
                     //Password requires at least 4 characters
-                    Toast.makeText(getApplicationContext(), "Vous devez rentrer une " +
-                            "adresse postale", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Vous devez saisir une " +
+                            "adresse complète", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     referenceData.child(getPseudo()).addListenerForSingleValueEvent(valueEventListener);
@@ -101,7 +109,7 @@ public class SignupActivity extends AppCompatActivity {
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
             if (!dataSnapshot.exists()) {
                 //Show the loading progress bar
-                loading.setVisibility(View.VISIBLE);
+                //loading.setVisibility(View.VISIBLE);
 
                 //Creation of the home localisation
                 double longitude = -1;
@@ -127,13 +135,13 @@ public class SignupActivity extends AppCompatActivity {
                             "valable, veuillez réessayer", Toast.LENGTH_SHORT).show();
 
                     //Hide the loading progress bar
-                    loading.setVisibility(View.INVISIBLE);
+                    //loading.setVisibility(View.INVISIBLE);
                 }
                 else {
                     //Home location set
-                    List<Double> home = new ArrayList<>();
-                    home.add(longitude);
-                    home.add(latitude);
+                    Location home = new Location();
+                    home.setLongitude(longitude);
+                    home.setLatitude(latitude);
 
                     //Add the new account
                     referenceData.child(getPseudo()).setValue(new User(getPassord(), Build.MODEL,
@@ -144,7 +152,7 @@ public class SignupActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
 
                     //Hide the loading progress bar
-                    loading.setVisibility(View.INVISIBLE);
+                    //loading.setVisibility(View.INVISIBLE);
 
                     //Redirect to the login page
                     Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -172,7 +180,23 @@ public class SignupActivity extends AppCompatActivity {
         return this.new_password.getText().toString();
     }
 
+    private String getNumber() {
+        return this.new_location_number.getText().toString();
+    }
+
+    private String getRoad() {
+        return this.new_location_road.getText().toString();
+    }
+
+    private String getCity() {
+        return this.new_location_city.getText().toString();
+    }
+
+    private String getCountry() {
+        return this.new_location_country.getText().toString();
+    }
+
     private String getLocation() {
-        return this.new_location.getText().toString();
+        return getNumber() + " " + getRoad() + ", " + getCity() + ", " + getCountry();
     }
 }
