@@ -6,14 +6,20 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,10 +35,61 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class AccountActivity extends AppCompatActivity {
+public class AccountActivity extends AppCompatActivity implements SensorEventListener {
 
     //_________________________________________fields_______________________________________________
+    private static final String CANAL = "MyCanal";
     private String pseudo;
+    private ParamSensors paramSensors;
+    private SensorManager sensorManager;
+    private Sensor sensorLight;
+    private Sensor sensorProximity;
+    private Sensor sensorAccel;
+    private Handler handler10s = new Handler();
+    private Handler handler7h = new Handler();
+    private int compteurRegister;
+    private boolean handlerLance;
+    private boolean register;
+
+    private Runnable schedule7h = new Runnable() {
+        @Override
+        public void run() {
+            compteurRegister = 1;
+            register = false;
+            handler10s.post(schedule10s);
+
+            //Recuperation of each data
+            Log.d("ALED", "Recup des données");
+
+            //Send notification
+
+            handler7h.postDelayed(schedule7h, 50 * 1000 - SystemClock.elapsedRealtime()%1000);
+        }
+    };
+
+    private Runnable schedule10s = new Runnable() {
+        @Override
+        public void run() {
+            if(compteurRegister <= 10) {
+                if(!register){
+                    Log.d("ALED", "Enregistrement");
+                    sensorManager.registerListener(AccountActivity.this, sensorLight,
+                            SensorManager.SENSOR_DELAY_GAME);
+                    sensorManager.registerListener(AccountActivity.this, sensorProximity,
+                            SensorManager.SENSOR_DELAY_GAME);
+                    sensorManager.registerListener(AccountActivity.this, sensorAccel,
+                            SensorManager.SENSOR_DELAY_UI);
+                    register = true;
+                }
+                compteurRegister++;
+                handler10s.postDelayed(schedule10s,1000 - SystemClock.elapsedRealtime()%1000);
+            }
+            else{
+                Log.d("ALED", "Désenregistrement");
+                sensorManager.unregisterListener(AccountActivity.this);
+            }
+        }
+    };
 
     //_________________________________________methods______________________________________________
     @Override
@@ -43,6 +100,18 @@ public class AccountActivity extends AppCompatActivity {
         //Recuperation of the login
         this.pseudo = getIntent().getStringExtra("pseudo");
         assert this.pseudo != null;
+
+        this.handlerLance = false;
+
+        //Instanciation of ParamSensors
+        this.paramSensors = new ParamSensors();
+
+        //Recuperation of sensors
+        this.sensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
+        assert sensorManager != null;
+        this.sensorLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        this.sensorProximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        this.sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         //Setting of the buttons up
         Button btn_disconnect = findViewById(R.id.disconnect);
@@ -71,7 +140,6 @@ public class AccountActivity extends AppCompatActivity {
         return this.pseudo;
     }
 
-
     public void notify(View view) {
         //Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, NotificationActivity.class);
@@ -84,22 +152,33 @@ public class AccountActivity extends AppCompatActivity {
 
         //Create a notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder
-                (AccountActivity.this) //, CHANNEL_ID)
-                .setSmallIcon(R.drawable.notification_icon)
-                .setContentTitle("Activité rappel")
-                .setContentText("Que faites-vous actuellement ?")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                (AccountActivity.this, CANAL);
+        builder.setSmallIcon(R.drawable.notification_icon);
+        builder.setContentTitle("Activité rappel");
+        builder.setContentText("Que faites-vous actuellement ?");
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-                //Set the question page that will fire when the user taps the notification
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true);
+        //Set the question page that will fire when the user taps the notification
+        builder.setContentIntent(pendingIntent);
+        builder.setAutoCancel(true);
 
         //Launch notification
-        //NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 Context.NOTIFICATION_SERVICE
         );
         assert notificationManager != null;
+
+        //Create a canal for the android version greater than Oreo
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            String channelID = getString(R.string.canalId);
+            String channelTitle = getString(R.string.canalTitle);
+            String channelDesc = getString(R.string.canalDesc);
+            NotificationChannel notificationChannel = new NotificationChannel(channelID, channelTitle, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.setDescription(channelDesc);
+            notificationManager.createNotificationChannel(notificationChannel);
+            builder.setChannelId(channelID);
+        }
+
         notificationManager.notify(0, builder.build());
     }
 
@@ -248,5 +327,49 @@ public class AccountActivity extends AppCompatActivity {
         return "Travailler";
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        /*if(!handlerLance){
+            handler7h.post(schedule7h);
+        }*/
+
+        Log.d("ALED","Params : " + MainActivity.PARAM_LOCATION.getLatitude() + " " +
+                MainActivity.PARAM_LOCATION.getLongitude());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        this.handlerLance = true;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_LIGHT :
+                this.paramSensors.setLight(event.values[0]);
+                Log.d("ALED", this.paramSensors.getLight() + " lx");
+                break;
+            case Sensor.TYPE_PROXIMITY :
+                this.paramSensors.setProximity(event.values[0]);
+                //Log.d("ALED", this.paramSensors.getProximity() + " cm");
+                break;
+            case Sensor.TYPE_ACCELEROMETER :
+                this.paramSensors.setAccelX(event.values[0]);
+                this.paramSensors.setAccelY(event.values[1]);
+                //Log.d("ALED", "X : " + this.paramSensors.getAccelX() + ", Y : " + this.paramSensors.getAccelY());
+                break;
+            default :
+                break;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }
 

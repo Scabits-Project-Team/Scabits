@@ -7,22 +7,13 @@ public class ParamSensors {
     private float proximity;
     private float accelX;
     private float accelY;
-    private double latitude;
-    private double longitude;
 
-    //_________________________________________constructors_________________________________________
+    //_________________________________________constructor_________________________________________
     public ParamSensors() {
-        this(0,0,0,0,0,0);
-    }
-
-    public ParamSensors(float light, float proximity, float accelX, float accelY,
-                        double latitude, double longitude) {
-        this.light = light;
-        this.proximity = proximity;
-        this.accelX = accelX;
-        this.accelY = accelY;
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.light = 0;
+        this.proximity = 0;
+        this.accelX = 0;
+        this.accelY = 0;
     }
 
     //_________________________________________methods______________________________________________
@@ -52,19 +43,5 @@ public class ParamSensors {
     }
     public void setAccelY(float accelY) {
         this.accelY = accelY;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
     }
 }
