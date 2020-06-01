@@ -1,5 +1,5 @@
 # Scabits
-  UQAC - Project of the summer trimester (8INF26) 
+  UQAC - Project of the summer trimester (8INF206) 
   
   Members :      
   - Gander Félix     
