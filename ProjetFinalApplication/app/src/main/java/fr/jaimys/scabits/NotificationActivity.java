@@ -179,6 +179,26 @@ public class NotificationActivity extends AppCompatActivity {
                 @SuppressLint("SimpleDateFormat") DateFormat formatter = new SimpleDateFormat("EEEE");
                 String day = formatter.format(date);
 
+                //Translate in base
+                switch (day) {
+                    case "lundi" : day = "Monday";
+                        break;
+                    case "mardi" : day = "Tuesday";
+                        break;
+                    case "mercredi" : day = "Wednesday";
+                        break;
+                    case "jeudi" : day = "Thursday";
+                        break;
+                    case "vendredi" : day = "Friday";
+                        break;
+                    case "samedi" : day = "Saturday";
+                        break;
+                    case "dimanche" : day = "Sunday";
+                        break;
+                    default :
+                        break;
+                }
+
                 //Find the hour
                 @SuppressLint("SimpleDateFormat") DateFormat formatter2 = new SimpleDateFormat("HH");
                 String hour = formatter2.format(date);

@@ -24,7 +24,7 @@
     <string name="playing_games">Jouer à des jeux</string>
     <string name="hint_projet">Description of the projet here</string>
     <string name="location_home">Adresse du domicile</string>
-    <string name="add_check">Lancer une notification</string>
+    <string name="add_check">Lancer la prise de données</string>
     <string name="logo_description">Logo de l\'application</string>
     <string name="basic_time">08/07/2000 \n 11:17</string>
     <string name="historic_no_item">Aucune activité n\'a encore été enregistré</string>
@@ -34,4 +34,6 @@
     <string name="canalId">CanalID</string>
     <string name="canalTitle">CanalTitle</string>
     <string name="canalDesc">Test du canal</string>
+    <string name="call">Téléphoner</string>
+    <string name="eat">Manger</string>
 </resources>

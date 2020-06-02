@@ -118,97 +118,7 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center|top"
-            >
 
-            <LinearLayout
-                android:layout_width="@dimen/item_width"
-                android:layout_height="@dimen/item_height"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables"
-                android:onClick="selectItem"
-                >
-
-                <ImageView
-                    android:layout_width="@dimen/image_notification_size"
-                    android:layout_height="@dimen/image_notification_size"
-                    android:src="@drawable/item_cooking_icon"
-                    android:contentDescription="@string/cooking"
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cooking"
-                    android:textSize="@dimen/activity_text_size"
-                    android:textColor="@color/colorWhite"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="110dp"
-                android:layout_height="@dimen/item_height"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables"
-                android:onClick="selectItem"
-                android:layout_marginHorizontal="10dp"
-                >
-
-                <ImageView
-                    android:layout_width="@dimen/image_notification_size"
-                    android:layout_height="@dimen/image_notification_size"
-                    android:src="@drawable/item_shopping_icon"
-                    android:contentDescription="@string/shopping"
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/shopping"
-                    android:textAlignment="center"
-                    android:textSize="@dimen/activity_text_size"
-                    android:textColor="@color/colorWhite"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="@dimen/item_width"
-                android:layout_height="@dimen/item_height"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables"
-                android:onClick="selectItem"
-                >
-
-                <ImageView
-                    android:layout_width="@dimen/image_notification_size"
-                    android:layout_height="@dimen/image_notification_size"
-                    android:src="@drawable/item_reading_icon"
-                    android:contentDescription="@string/reading"
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/reading"
-                    android:textAlignment="center"
-                    android:textSize="@dimen/activity_text_size"
-                    android:textColor="@color/colorWhite"
-                    />
-
-            </LinearLayout>
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -300,6 +210,99 @@
                     />
 
             </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|top"
+            >
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_call_icon"
+                    android:contentDescription="@string/call"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/call"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="110dp"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                android:layout_marginHorizontal="10dp"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_shopping_icon"
+                    android:contentDescription="@string/shopping"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/shopping"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="@dimen/item_width"
+                android:layout_height="@dimen/item_height"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables"
+                android:onClick="selectItem"
+                >
+
+                <ImageView
+                    android:layout_width="@dimen/image_notification_size"
+                    android:layout_height="@dimen/image_notification_size"
+                    android:src="@drawable/item_eat_icon"
+                    android:contentDescription="@string/eat"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/eat"
+                    android:textAlignment="center"
+                    android:textSize="@dimen/activity_text_size"
+                    android:textColor="@color/colorWhite"
+                    />
+
+            </LinearLayout>
+
 
         </LinearLayout>
 

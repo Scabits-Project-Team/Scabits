@@ -21,6 +21,7 @@
         />
 
     <TextView
+        android:id="@+id/timer_next_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
@@ -67,7 +68,7 @@
         android:textSize="20sp"
         android:background="@drawable/button_sign_design"
         android:layout_marginTop="30dp"
-        android:onClick="notify"
+        android:onClick="startRunnable"
         />
     
 </LinearLayout>

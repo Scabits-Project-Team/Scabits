@@ -23,9 +23,9 @@ public class GhostActivity extends AppCompatActivity {
 
         Log.d("ALED", "Désenregistrement location");
 
-        if(MainActivity.CLASSE_RANDOM_SELON_FELIX != null){
-            MainActivity.CLASSE_RANDOM_SELON_FELIX.getLocationManager()
-                    .removeUpdates(MainActivity.CLASSE_RANDOM_SELON_FELIX.getMainActivity());
+        if(MainActivity.LOCATION_STORAGE != null){
+            MainActivity.LOCATION_STORAGE.getLocationManager()
+                    .removeUpdates(MainActivity.LOCATION_STORAGE.getMainActivity());
         }
     }
 }

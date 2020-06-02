@@ -111,10 +111,10 @@ public class HistoricActivity extends AppCompatActivity {
                         case "Travailler" : tag = "working"; break;
                         case "Dormir" : tag = "sleeping"; break;
                         case "Faire du sport" : tag = "working_out"; break;
-                        case "Cuisiner" : tag = "cooking"; break;
+                        case "Téléphoner" : tag = "call"; break;
                         case "Regarder la télévision" : tag = "tv"; break;
+                        case "Manger" : tag = "eat"; break;
                         case "Magasiner" : tag = "shopping"; break;
-                        case "Lire" : tag = "reading"; break;
                         case "Prendre les transports" : tag = "commuting"; break;
                         case "Jouer à des jeux" : tag = "games"; break;
                         default : tag = "unknow"; break;
@@ -161,10 +161,8 @@ public class HistoricActivity extends AppCompatActivity {
     }
 
     public void backAccountPage(View view) {
-        //Launch Account Activity and pass the pseudo
-        Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
-        intent.putExtra("pseudo",  this.pseudo);
-        startActivity(intent);
+        //Launch Account Activity and pass the pseudo just in case
+        getIntent().putExtra("pseudo",  this.pseudo);
         finish();
     }
 }

@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final int PERM_REQ_ID = 1234;
     private boolean deniedForever = false;
     public static ParamLocation PARAM_LOCATION;
-    public static ClasseRandomSelonFelix CLASSE_RANDOM_SELON_FELIX = null;
+    public static LocationStorage LOCATION_STORAGE = null;
 
     //_________________________________________methods______________________________________________
     @Override
@@ -91,9 +91,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         5000, 0, this);
             }
 
-            MainActivity.CLASSE_RANDOM_SELON_FELIX = new ClasseRandomSelonFelix();
-            MainActivity.CLASSE_RANDOM_SELON_FELIX.setLocationManager(this.locationManager);
-            MainActivity.CLASSE_RANDOM_SELON_FELIX.setMainActivity(this);
+            MainActivity.LOCATION_STORAGE = new LocationStorage();
+            MainActivity.LOCATION_STORAGE.setLocationManager(this.locationManager);
+            MainActivity.LOCATION_STORAGE.setMainActivity(this);
 
         }
         else{
@@ -108,9 +108,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Manifest.permission.ACCESS_COARSE_LOCATION)){
 
             new AlertDialog.Builder(this)
-                    .setTitle("Permission needed")
-                    .setMessage("GPS Location is needed to improve a lot the research of your activities")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    .setTitle("Demande de permission")
+                    .setMessage("La localisation GPS est nécessaire à l'utilisation de cette " +
+                            "application, voulez-vous l'activer ?")
+                    .setPositiveButton("Oui", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             ActivityCompat.requestPermissions(MainActivity.this, new String[] {
@@ -119,11 +120,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             }, PERM_REQ_ID);
                         }
                     })
-                    .setNegativeButton("I don't want", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("Non", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
-                            Toast.makeText(MainActivity.this, "Permissions DENIED",
+                            Toast.makeText(MainActivity.this, "Permissions refusées",
                                     Toast.LENGTH_SHORT).show();
                         }
                     })
@@ -140,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 this.deniedForever = true;
             }
             else{
-                Toast.makeText(this, "Permissions DENIED FOREVER", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permissions refusées pour toujours", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -151,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if(requestCode == PERM_REQ_ID){
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Don't forget to activate your GPS and restart" +
-                        " the application if so", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "N'oubliez pas d'activer votre GPS et de " +
+                        "relancer l'application s'il n'était pas déjà prêt", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -161,8 +162,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onLocationChanged(Location location) {
         MainActivity.PARAM_LOCATION.setLatitude(location.getLatitude());
         MainActivity.PARAM_LOCATION.setLongitude(location.getLongitude());
-        /*Log.d("ALED","Params : " + MainActivity.PARAM_LOCATION.getLatitude() + " " +
-                                                MainActivity.PARAM_LOCATION.getLongitude());*/
+        Log.d("ALED","OnLocationChange : " + MainActivity.PARAM_LOCATION.getLatitude() + " " +
+                                                MainActivity.PARAM_LOCATION.getLongitude());
     }
 
     @Override
