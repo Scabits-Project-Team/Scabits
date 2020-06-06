@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ThreadLocalRandom;
 
 
 
@@ -52,26 +51,29 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
     //Global fields
     private String pseudo;
+    private Button btn_history;
 
-    //
+    //Database
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private User user = null;
-    private Button launchCheck;
+
 
     //Sensors fields
     private ParamSensors paramSensors;
     private SensorManager sensorManager;
-    private Sensor sensorLight, sensorProximity, sensorAccel;
+    private Sensor sensorLight, sensorProximity, sensorAccel, sensorMagneto, sensorGyro;
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
     private Location locationInfos = new Location(1d,1d);
+    private Location latestLocInfos = new Location(1d,1d);
 
     //Runnable, handler and timer
+    private Button launchCheck;
     private TextView timerCheck;
+    private TextView textDataCheck;
     private Handler handler10s = new Handler();
     private Handler handler7h = new Handler();
     private int compteurRegister;
-    private boolean handlerLance;
     private boolean register;
 
     private Runnable schedule7h = new Runnable() {
@@ -93,11 +95,6 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         public void run() {
             if(compteurRegister <= 10) {
                 if(!register){
-                    Log.d("ALED", "Register");
-                    //Get location
-                    locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
-                    locationInfos.setLatitude( MainActivity.PARAM_LOCATION.getLatitude());
-
                     //Register listeners
                     sensorManager.registerListener(AccountActivity.this, sensorLight,
                             SensorManager.SENSOR_DELAY_GAME);
@@ -105,6 +102,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                             SensorManager.SENSOR_DELAY_GAME);
                     sensorManager.registerListener(AccountActivity.this, sensorAccel,
                             SensorManager.SENSOR_DELAY_UI);
+                    sensorManager.registerListener(AccountActivity.this, sensorMagneto,
+                            SensorManager.SENSOR_DELAY_NORMAL);
+                    sensorManager.registerListener(AccountActivity.this, sensorGyro,
+                            SensorManager.SENSOR_DELAY_NORMAL);
+
                     register = true;
                 }
 
@@ -134,8 +136,6 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         this.pseudo = getIntent().getStringExtra("pseudo");
         assert this.pseudo != null;
 
-        this.handlerLance = false;
-
         //Instanciation of ParamSensors
         this.paramSensors = new ParamSensors();
 
@@ -145,23 +145,27 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         this.sensorLight = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         this.sensorProximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         this.sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        this.sensorMagneto = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        this.sensorGyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
         //Setting of the buttons and textview up
         this.timerCheck = findViewById(R.id.timer_next_check);
         this.launchCheck = findViewById(R.id.add_check_button);
+        this.textDataCheck = findViewById(R.id.text_datacheck);
 
         Button btn_disconnect = findViewById(R.id.disconnect);
         btn_disconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                handler7h.removeCallbacksAndMessages(null);
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
 
-        Button btn_history = findViewById(R.id.history_button);
-        btn_history.setOnClickListener(new View.OnClickListener() {
+        this.btn_history = findViewById(R.id.history_button);
+        this.btn_history.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), HistoricActivity.class);
@@ -240,6 +244,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     private void getDataSensors(int compteurRegister) {
         //Get only 3 times each data
         if (compteurRegister % 3 == 0) {
+            //Can't reach historic
+            this.btn_history.setEnabled(false);
+
             //Light
             HashMap<String, Float> lightValue = new HashMap<>();
             lightValue.put("luminosity", this.paramSensors.getLight());
@@ -252,6 +259,19 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             HashMap<String, Float> accelerometerValues = new HashMap<>();
             accelerometerValues.put("X", this.paramSensors.getAccelX());
             accelerometerValues.put("Y", this.paramSensors.getAccelY());
+            accelerometerValues.put("Z", this.paramSensors.getAccelZ());
+
+            //Magnetometer
+            HashMap<String, Float> magnetometerValues = new HashMap<>();
+            magnetometerValues.put("X", this.paramSensors.getMagnetoX());
+            magnetometerValues.put("Y", this.paramSensors.getMagnetoY());
+            magnetometerValues.put("Z", this.paramSensors.getMagnetoZ());
+
+            //Gyrometer
+            HashMap<String, Float> gyrometerValues = new HashMap<>();
+            gyrometerValues.put("X", this.paramSensors.getGyroX());
+            gyrometerValues.put("Y", this.paramSensors.getGyroY());
+            gyrometerValues.put("Z", this.paramSensors.getGyroZ());
 
             //Add to the sensor info
             switch (compteurRegister / 3) {
@@ -262,6 +282,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                             new SensorData(true, proximityValue, null, null));
                     sensorInfos.put(String.valueOf(Sensor.TYPE_ACCELEROMETER),
                             new SensorData(true, accelerometerValues, null, null));
+                    sensorInfos.put(String.valueOf(Sensor.TYPE_GYROSCOPE),
+                            new SensorData(false, gyrometerValues, null, null));
+                    sensorInfos.put(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD),
+                            new SensorData(false, magnetometerValues, null, null));
                     break;
                 case 2 :
                     Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)))
@@ -270,6 +294,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                             .setValue2(proximityValue);
                     Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_ACCELEROMETER)))
                             .setValue2(accelerometerValues);
+                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_GYROSCOPE)))
+                            .setValue2(gyrometerValues);
+                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD)))
+                            .setValue2(magnetometerValues);
                     break;
                 case 3 :
                     Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)))
@@ -278,9 +306,27 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                             .setValue3(proximityValue);
                     Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_ACCELEROMETER)))
                             .setValue3(accelerometerValues);
+                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_GYROSCOPE)))
+                            .setValue3(gyrometerValues);
+                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD)))
+                            .setValue3(magnetometerValues);
 
                     //Send notification
                     AccountActivity.this.notify(null);
+
+                    //Get location only if it's up to date
+                    if (latestLocInfos.getLatitude().equals(MainActivity.PARAM_LOCATION.getLatitude())
+                    && latestLocInfos.getLongitude().equals(MainActivity.PARAM_LOCATION.getLongitude())){
+                        locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
+                        locationInfos.setLatitude( MainActivity.PARAM_LOCATION.getLatitude());
+                    }
+                    else {
+                        locationInfos.setLongitude(0d);
+                        locationInfos.setLatitude(0d);
+                    }
+
+                    //Reach historic enable
+                    this.btn_history.setEnabled(true);
                     break;
                 default:
                     break;
@@ -305,23 +351,44 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
 
+    @SuppressWarnings("ConstantConditions") @SuppressLint("SimpleDateFormat")
     private String findActivity(HashMap<String, SensorData> sensorInfos, Location location,
                                 long timestamp) {
         //Find the day number (sunday to monday)
         Date date = new Date(timestamp);
-        @SuppressLint("SimpleDateFormat") DateFormat formatter = new SimpleDateFormat("EEEE");
+        DateFormat formatter = new SimpleDateFormat("EEEE");
         String day = formatter.format(date);
 
         //Find the hour
-        @SuppressLint("SimpleDateFormat") DateFormat formatter2 = new SimpleDateFormat("HH");
+        DateFormat formatter2 = new SimpleDateFormat("HH");
         String hour = formatter2.format(date);
+
+        //Change the date for correspond with database values
+        switch (day) {
+            case "lundi" : day = "Monday";
+                break;
+            case "mardi" : day = "Tuesday";
+                break;
+            case "mercredi" : day = "Wednesday";
+                break;
+            case "jeudi" : day = "Thursday";
+                break;
+            case "vendredi" : day = "Friday";
+                break;
+            case "samedi" : day = "Saturday";
+                break;
+            case "dimanche" : day = "Sunday";
+                break;
+            default:
+                break;
+        }
 
 
         //Create the list of activities depending on the day and hour
         HashMap<String, Integer> activities;
 
-        if (day.equals("Sunday") || day.equals("Saturday") || day.equals("dimanche")
-                || day.equals("samedi")) {
+        //If it's the week-end or the middle of the week
+        if (day.equals("Sunday") || day.equals("Saturday")) {
             activities = weekEndActivitiesStat.get(Integer.valueOf(hour));
         }
         else {
@@ -329,49 +396,136 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
 
         //Use location
-        if (this.user.getHome().equals(location)) {
-            Log.d("ALED", "This is home");
-        }
-        else if (this.user.getWork() != null && this.user.getWork().equals(location)) {
-            Log.d("ALED", "This is work");
-        }
-        else {
-            Log.d("ALED", "This is else");
+        if (!(location.getLatitude() == 0d && location.getLongitude() == 0d)) {
+            if (this.user.getHome().equals(location)) {
+                //Activities at home
+                HashMap<String, Integer> currentValues = new HashMap<>();
+                currentValues.put("Dormir", activities.get("Dormir")+20);
+                activities.remove("Dormir");
+                currentValues.put("Manger", activities.get("Manger")+20);
+                activities.remove("Manger");
+                currentValues.put("Regarder la télévision", activities.get("Regarder la télévision")+20);
+                activities.remove("Regarder la télévision");
+                currentValues.put("Jouer à des jeux", activities.get("Jouer à des jeux")+20);
+                activities.remove("Jouer à des jeux");
+                activities.putAll(currentValues);
+            }
+            else {
+                //If he is outside, he may not sleep
+                int valueSleep = activities.get("Dormir");
+                activities.remove("Dormir");
+                activities.put("Dormir", valueSleep - 30);
+
+                //Activities he could do at work
+                if (this.user.getWork() != null && this.user.getWork().equals(location)) {
+                    int valueWork = activities.get("Travailler");
+                    activities.remove("Travailler");
+                    activities.put("Travailler", valueWork + 40);
+
+                    int valueEat = activities.get("Manger");
+                    activities.remove("Manger");
+                    activities.put("Manger", valueEat + 10);
+                }
+
+                //If he is at a shop place
+                else if (this.user.getLocationsShop() != null) {
+                    for (Location loc : this.user.getLocationsShop()) {
+                        if (loc.equals(location)) {
+                            int valueShop = activities.get("Magasiner");
+                            activities.remove("Magasiner");
+                            activities.put("Magasiner", valueShop + 40);
+
+                            int valueEat = activities.get("Manger");
+                            activities.remove("Manger");
+                            activities.put("Manger", valueEat + 10);
+                        }
+                    }
+                }
+
+                //If he is at a sport place
+                else if (this.user.getLocationsSport() != null) {
+                    for (Location loc : this.user.getLocationsSport()) {
+                        if (loc.equals(location)) {
+                            int valueSport = activities.get("Faire du sport");
+                            activities.remove("Faire du sport");
+                            activities.put("Faire du sport", valueSport + 40);
+                        }
+                    }
+                }
+
+                //If he is outside, in an unknown place
+                else {
+                    int valueShop = activities.get("Magasiner");
+                    activities.remove("Magasiner");
+                    activities.put("Magasiner", valueShop + 15);
+
+                    int valueSport = activities.get("Faire du sport");
+                    activities.remove("Faire du sport");
+                    activities.put("Faire du sport", valueSport + 15);
+
+                    int valueCommut = activities.get("Prendre les transports");
+                    activities.remove("Prendre les transports");
+                    activities.put("Prendre les transports", valueCommut + 20);
+                }
+            }
         }
 
 
         //Use sensors
-        //If the device is against a surface, the light proximity can't be used
-        //noinspection ConstantConditions
-        if (sensorInfos.get(String.valueOf(Sensor.TYPE_PROXIMITY)).getValue1().get("proximity") == 0f
-                && sensorInfos.get(String.valueOf(Sensor.TYPE_PROXIMITY)).getValue2().get("proximity") == 0f
-                && sensorInfos.get(String.valueOf(Sensor.TYPE_PROXIMITY)).getValue3().get("proximity") == 0f)
+        float averageLuminosity =
+                (sensorInfos.get(String.valueOf(5)).getValue1().get("luminosity")
+                        + sensorInfos.get(String.valueOf(5)).getValue2().get("luminosity")
+                        + sensorInfos.get(String.valueOf(5)).getValue3().get("luminosity")) /3;
+
+        float averageProximity =
+                (sensorInfos.get(String.valueOf(8)).getValue1().get("proximity")
+                        + sensorInfos.get(String.valueOf(8)).getValue2().get("proximity")
+                        + sensorInfos.get(String.valueOf(8)).getValue3().get("proximity")) / 3;
+
+        float accelerometerXValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("X");
+        float accelerometerXValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("X");
+        float accelerometerXValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("X");
+
+        float accelerometerYValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("Y");
+        float accelerometerYValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("Y");
+        float accelerometerYValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("Y");
+
+        float accelerometerZValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("Z");
+        float accelerometerZValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("Z");
+        float accelerometerZValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("Z");
+
+        float averageAccelerometer = (accelerometerZValue1 + accelerometerZValue2 + accelerometerZValue3) / 3;
+
+        if(averageAccelerometer <= 0.3f && averageAccelerometer > -2.0f && averageLuminosity > 10f && averageProximity == 0f){
+            int nbr = activities.get("Téléphoner");
+            activities.remove("Téléphoner");
+            activities.put("Téléphoner", nbr + 60);
+        }
+
+        if (averageLuminosity < 10f && averageProximity == 0f) {
+            int nbr = activities.get("Dormir");
+            activities.remove("Dormir");
+            activities.put("Dormir",nbr + 15);
+        }
+
+        if(averageLuminosity > 1000f) {
+            int nbr = activities.get("Faire du sport");
+            activities.remove("Faire du sport");
+            activities.put("Faire du sport", nbr + 5);
+        }
+
+        if(Math.abs(Math.max(Math.max(accelerometerXValue1, accelerometerXValue2), accelerometerXValue3)) > 2f
+           && Math.abs(Math.max(Math.max(accelerometerYValue1, accelerometerYValue2), accelerometerYValue3)) > 2f
+           && Math.abs(Math.max(Math.max(accelerometerZValue1, accelerometerZValue2), accelerometerZValue3)) > 2f)
         {
-            Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT))).setUsed(false);
-        }
-        else {
-            //noinspection ConstantConditions
-            float averageLuminosity =
-                    (sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)).getValue1().get("luminosity")
-                            + sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)).getValue2().get("luminosity")
-                            + sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)).getValue3().get("luminosity")) /3;
-
-            if (averageLuminosity < 10) {
-                @SuppressWarnings("ConstantConditions")int nbr = activities.get("Dormir");
-                activities.remove("Dormir");
-                activities.put("Dormir",nbr + 50);
-            }
-            /*else if (averageLuminosity < 50) {
-                //Activité intérieur ou peu lumineux dehors ?
-            }*/
-
-            //Activités exterieur ? ou le soir ?
-
+            int nbr = activities.get("Faire du sport");
+            activities.remove("Faire du sport");
+            activities.put("Faire du sport", nbr + 10);
         }
 
 
 
-        //Use user habits
+        //Use users' habits
         if ((this.user.getBasicWeek() != null) && (this.user.getBasicWeek().containsKey(day))  &&
             (Objects.requireNonNull(this.user.getBasicWeek().get(day)).containsKey(hour))  )
         {
@@ -383,55 +537,37 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 sum += nbrOccurence;
             }
 
-            assert activities != null;
-            for (String act: habitsActivities.keySet()) {
-                @SuppressWarnings("ConstantConditions") int occActivity = habitsActivities.get(act);
-                activities.put("Jouer à des jeux", occActivity/sum);
+            //If we don't have enought data, we can't relie on this
+            if (sum >= 5) {
+                assert activities != null;
+                for (String act: habitsActivities.keySet()) {
+                    int occActivity = habitsActivities.get(act);
+                    int nbrActivity = activities.get(act);
+                    activities.remove(act);
+                    activities.put(act, nbrActivity + (occActivity*50/sum));
+                }
             }
         }
 
         assert activities != null;
-        Log.d("ALED", activities.toString());
-
-        //------------------------------------------------------------------------------------------
-
-
-
-        String activityReturn;
-        int randomNum = ThreadLocalRandom.current().nextInt(1, 9 + 1);
-        switch (randomNum) {
-            case 1 :
-                activityReturn = "Travailler";
-                break;
-            case 2 :
-                activityReturn = "Jouer à des jeux";
-                break;
-            case 3 :
-                activityReturn = "Prendre les transports";
-                break;
-            case 4 :
-                activityReturn = "Manger";
-                break;
-            case 5 :
-                activityReturn = "Dormir";
-                break;
-            case 6 :
-                activityReturn = "Téléphoner";
-                break;
-            case 7 :
-                activityReturn = "Faire du sport";
-                break;
-            case 8 :
-                activityReturn = "Regarder la télévision";
-                break;
-            case 9 :
-                activityReturn = "Magasiner";
-                break;
-            default:
-                activityReturn = "Inconnu";
-                break;
+        for (String act : activities.keySet()) {
+            Log.d("ALED", act + " : " + activities.get(act));
         }
-        return activityReturn;
+
+        //Get the activity with maximum value
+        String expectedActivity = "Travailler";
+        int nbMax = activities.get(expectedActivity);
+        for (String act: activities.keySet()) {
+            if (nbMax < activities.get(act)) {
+                expectedActivity = act;
+                nbMax = activities.get(act);
+            }
+        }
+
+        //Reset initialisation
+        intialisationOfActivityStats();
+
+        return expectedActivity;
     }
 
 
@@ -462,7 +598,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     @Override
     protected void onPause() {
         super.onPause();
-        this.handlerLance = true;
+
+        //If the user left, store last location
+        latestLocInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
+        latestLocInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
     }
 
     @Override
@@ -477,6 +616,17 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             case Sensor.TYPE_ACCELEROMETER :
                 this.paramSensors.setAccelX(event.values[0]);
                 this.paramSensors.setAccelY(event.values[1]);
+                this.paramSensors.setAccelZ(event.values[2]);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD :
+                this.paramSensors.setMagnetoX(event.values[0]);
+                this.paramSensors.setMagnetoY(event.values[1]);
+                this.paramSensors.setMagnetoZ(event.values[2]);
+                break;
+            case Sensor.TYPE_GYROSCOPE :
+                this.paramSensors.setGyroX(event.values[0]);
+                this.paramSensors.setGyroY(event.values[1]);
+                this.paramSensors.setGyroZ(event.values[2]);
                 break;
             default :
                 break;
@@ -489,9 +639,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
     public void startRunnable(View view) {
-        this.schedule7h.run();
+        this.handler7h.post(this.schedule7h);
+        this.textDataCheck.setText(R.string.analysis);
         this.launchCheck.setEnabled(false);
         this.launchCheck.setVisibility(View.INVISIBLE);
+        this.timerCheck.setEnabled(true);
+        this.timerCheck.setVisibility(View.VISIBLE);
     }
 
     public class RepetAction {
@@ -556,99 +709,99 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 00h -> 02h ____________________________________________
         HashMap<String, Integer> zero = new HashMap<>();
-        zero.put("Travailler",0);         zero.put("Manger",0);
-        zero.put("Jouer à des jeux",0);   zero.put("Prendre les transports",0);
-        zero.put("Téléphoner",0);         zero.put("Regarder la télévision",0);
-        zero.put("Magasiner",0);          zero.put("Faire du sport",0);
-        zero.put("Dormir",0);
+        zero.put("Travailler",5);         zero.put("Manger",5);
+        zero.put("Jouer à des jeux",15);   zero.put("Prendre les transports",5);
+        zero.put("Téléphoner",5);         zero.put("Regarder la télévision",15);
+        zero.put("Magasiner",5);          zero.put("Faire du sport",5);
+        zero.put("Dormir",60);
 
         //__________________________________ 02h -> 04h ____________________________________________
         HashMap<String, Integer> two = new HashMap<>();
-        two.put("Travailler",0);         two.put("Manger",0);
-        two.put("Jouer à des jeux",0);   two.put("Prendre les transports",0);
-        two.put("Téléphoner",0);         two.put("Regarder la télévision",0);
-        two.put("Magasiner",0);          two.put("Faire du sport",0);
-        two.put("Dormir",0);
+        two.put("Travailler",5);         two.put("Manger",5);
+        two.put("Jouer à des jeux",5);   two.put("Prendre les transports",5);
+        two.put("Téléphoner",5);         two.put("Regarder la télévision",5);
+        two.put("Magasiner",5);          two.put("Faire du sport",5);
+        two.put("Dormir",80);
 
         //__________________________________ 04h -> 06h ____________________________________________
         HashMap<String, Integer> four = new HashMap<>();
-        four.put("Travailler",0);         four.put("Manger",0);
-        four.put("Jouer à des jeux",0);   four.put("Prendre les transports",0);
-        four.put("Téléphoner",0);         four.put("Regarder la télévision",0);
-        four.put("Magasiner",0);          four.put("Faire du sport",0);
-        four.put("Dormir",0);
+        four.put("Travailler",5);         four.put("Manger",5);
+        four.put("Jouer à des jeux",5);   four.put("Prendre les transports",5);
+        four.put("Téléphoner",5);         four.put("Regarder la télévision",5);
+        four.put("Magasiner",5);          four.put("Faire du sport",5);
+        four.put("Dormir",80);
 
         //__________________________________ 06h -> 08h ____________________________________________
         HashMap<String, Integer> size = new HashMap<>();
-        size.put("Travailler",0);         size.put("Manger",0);
-        size.put("Jouer à des jeux",0);   size.put("Prendre les transports",0);
-        size.put("Téléphoner",0);         size.put("Regarder la télévision",0);
-        size.put("Magasiner",0);          size.put("Faire du sport",0);
-        size.put("Dormir",0);
+        size.put("Travailler",15);         size.put("Manger",80);
+        size.put("Jouer à des jeux",10);   size.put("Prendre les transports",40);
+        size.put("Téléphoner",10);         size.put("Regarder la télévision",10);
+        size.put("Magasiner",10);          size.put("Faire du sport",10);
+        size.put("Dormir",20);
 
         //__________________________________ 08h -> 10h ____________________________________________
         HashMap<String, Integer> eight = new HashMap<>();
-        eight.put("Travailler",0);         eight.put("Manger",0);
-        eight.put("Jouer à des jeux",0);   eight.put("Prendre les transports",0);
-        eight.put("Téléphoner",0);         eight.put("Regarder la télévision",0);
-        eight.put("Magasiner",0);          eight.put("Faire du sport",0);
-        eight.put("Dormir",0);
+        eight.put("Travailler",40);         eight.put("Manger",30);
+        eight.put("Jouer à des jeux",10);   eight.put("Prendre les transports",40);
+        eight.put("Téléphoner",10);         eight.put("Regarder la télévision",10);
+        eight.put("Magasiner",10);          eight.put("Faire du sport",10);
+        eight.put("Dormir",5);
 
         //__________________________________ 10h -> 12h ____________________________________________
         HashMap<String, Integer> ten = new HashMap<>();
-        ten.put("Travailler",0);         ten.put("Manger",0);
-        ten.put("Jouer à des jeux",0);   ten.put("Prendre les transports",0);
-        ten.put("Téléphoner",0);         ten.put("Regarder la télévision",0);
-        ten.put("Magasiner",0);          ten.put("Faire du sport",0);
-        ten.put("Dormir",0);
+        ten.put("Travailler",80);         ten.put("Manger",15);
+        ten.put("Jouer à des jeux",5);   ten.put("Prendre les transports",15);
+        ten.put("Téléphoner",10);         ten.put("Regarder la télévision",5);
+        ten.put("Magasiner",10);          ten.put("Faire du sport",5);
+        ten.put("Dormir",5);
 
         //__________________________________ 12h -> 14h ____________________________________________
         HashMap<String, Integer> twelwe = new HashMap<>();
-        twelwe.put("Travailler",0);         twelwe.put("Manger",0);
-        twelwe.put("Jouer à des jeux",0);   twelwe.put("Prendre les transports",0);
-        twelwe.put("Téléphoner",0);         twelwe.put("Regarder la télévision",0);
-        twelwe.put("Magasiner",0);          twelwe.put("Faire du sport",0);
-        twelwe.put("Dormir",0);
+        twelwe.put("Travailler",40);         twelwe.put("Manger",80);
+        twelwe.put("Jouer à des jeux",5);   twelwe.put("Prendre les transports",15);
+        twelwe.put("Téléphoner",10);         twelwe.put("Regarder la télévision",5);
+        twelwe.put("Magasiner",10);          twelwe.put("Faire du sport",5);
+        twelwe.put("Dormir",5);
 
         //__________________________________ 14h -> 16h ____________________________________________
         HashMap<String, Integer> fourteen = new HashMap<>();
-        fourteen.put("Travailler",0);         fourteen.put("Manger",0);
-        fourteen.put("Jouer à des jeux",0);   fourteen.put("Prendre les transports",0);
-        fourteen.put("Téléphoner",0);         fourteen.put("Regarder la télévision",0);
-        fourteen.put("Magasiner",0);          fourteen.put("Faire du sport",0);
-        fourteen.put("Dormir",0);
+        fourteen.put("Travailler",80);         fourteen.put("Manger",15);
+        fourteen.put("Jouer à des jeux",5);   fourteen.put("Prendre les transports",15);
+        fourteen.put("Téléphoner",10);         fourteen.put("Regarder la télévision",5);
+        fourteen.put("Magasiner",10);          fourteen.put("Faire du sport",10);
+        fourteen.put("Dormir",5);
 
         //__________________________________ 16h -> 18h ____________________________________________
         HashMap<String, Integer> sizeteen = new HashMap<>();
-        sizeteen.put("Travailler",0);         sizeteen.put("Manger",0);
-        sizeteen.put("Jouer à des jeux",0);   sizeteen.put("Prendre les transports",0);
-        sizeteen.put("Téléphoner",0);         sizeteen.put("Regarder la télévision",0);
-        sizeteen.put("Magasiner",0);          sizeteen.put("Faire du sport",0);
-        sizeteen.put("Dormir",0);
+        sizeteen.put("Travailler",40);         sizeteen.put("Manger",5);
+        sizeteen.put("Jouer à des jeux",5);   sizeteen.put("Prendre les transports",40);
+        sizeteen.put("Téléphoner",10);         sizeteen.put("Regarder la télévision",5);
+        sizeteen.put("Magasiner",20);          sizeteen.put("Faire du sport",30);
+        sizeteen.put("Dormir",5);
 
         //__________________________________ 18h -> 20h ____________________________________________
         HashMap<String, Integer> eighteen = new HashMap<>();
-        eighteen.put("Travailler",0);         eighteen.put("Manger",0);
-        eighteen.put("Jouer à des jeux",0);   eighteen.put("Prendre les transports",0);
-        eighteen.put("Téléphoner",0);         eighteen.put("Regarder la télévision",0);
-        eighteen.put("Magasiner",0);          eighteen.put("Faire du sport",0);
-        eighteen.put("Dormir",0);
+        eighteen.put("Travailler",15);         eighteen.put("Manger",60);
+        eighteen.put("Jouer à des jeux",40);   eighteen.put("Prendre les transports",40);
+        eighteen.put("Téléphoner",10);         eighteen.put("Regarder la télévision",60);
+        eighteen.put("Magasiner",20);          eighteen.put("Faire du sport",40);
+        eighteen.put("Dormir",5);
 
         //__________________________________ 20h -> 22h ____________________________________________
         HashMap<String, Integer> twenty = new HashMap<>();
-        twenty.put("Travailler",0);         twenty.put("Manger",0);
-        twenty.put("Jouer à des jeux",0);   twenty.put("Prendre les transports",0);
-        twenty.put("Téléphoner",0);         twenty.put("Regarder la télévision",0);
-        twenty.put("Magasiner",0);          twenty.put("Faire du sport",0);
-        twenty.put("Dormir",0);
+        twenty.put("Travailler",5);         twenty.put("Manger",60);
+        twenty.put("Jouer à des jeux",40);   twenty.put("Prendre les transports",5);
+        twenty.put("Téléphoner",10);         twenty.put("Regarder la télévision",60);
+        twenty.put("Magasiner",10);          twenty.put("Faire du sport",30);
+        twenty.put("Dormir",5);
 
         //__________________________________ 22h -> 00h ____________________________________________
         HashMap<String, Integer> twentytwo = new HashMap<>();
-        twentytwo.put("Travailler",0);         twentytwo.put("Manger",0);
-        twentytwo.put("Jouer à des jeux",0);   twentytwo.put("Prendre les transports",0);
-        twentytwo.put("Téléphoner",0);         twentytwo.put("Regarder la télévision",0);
-        twentytwo.put("Magasiner",0);          twentytwo.put("Faire du sport",0);
-        twentytwo.put("Dormir",0);
+        twentytwo.put("Travailler",5);         twentytwo.put("Manger",15);
+        twentytwo.put("Jouer à des jeux",20);   twentytwo.put("Prendre les transports",5);
+        twentytwo.put("Téléphoner",5);         twentytwo.put("Regarder la télévision",30);
+        twentytwo.put("Magasiner",5);          twentytwo.put("Faire du sport",5);
+        twentytwo.put("Dormir",20);
 
 
         weekActivitiesStat.put(0, zero);weekActivitiesStat.put(12, twelwe);
@@ -664,99 +817,99 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 00h -> 02h ____________________________________________
         HashMap<String, Integer> zeroWE = new HashMap<>();
-        zeroWE.put("Travailler",0);         zeroWE.put("Manger",0);
-        zeroWE.put("Jouer à des jeux",0);   zeroWE.put("Prendre les transports",0);
-        zeroWE.put("Téléphoner",0);         zeroWE.put("Regarder la télévision",0);
-        zeroWE.put("Magasiner",0);          zeroWE.put("Faire du sport",0);
-        zeroWE.put("Dormir",0);
+        zeroWE.put("Travailler",5);         zeroWE.put("Manger",5);
+        zeroWE.put("Jouer à des jeux",15);   zeroWE.put("Prendre les transports",5);
+        zeroWE.put("Téléphoner",5);         zeroWE.put("Regarder la télévision",15);
+        zeroWE.put("Magasiner",5);          zeroWE.put("Faire du sport",5);
+        zeroWE.put("Dormir",60);
 
         //__________________________________ 02h -> 04h ____________________________________________
         HashMap<String, Integer> twoWE = new HashMap<>();
-        twoWE.put("Travailler",0);         twoWE.put("Manger",0);
-        twoWE.put("Jouer à des jeux",0);   twoWE.put("Prendre les transports",0);
-        twoWE.put("Téléphoner",0);         twoWE.put("Regarder la télévision",0);
-        twoWE.put("Magasiner",0);          twoWE.put("Faire du sport",0);
-        twoWE.put("Dormir",0);
+        twoWE.put("Travailler",5);         twoWE.put("Manger",5);
+        twoWE.put("Jouer à des jeux",5);   twoWE.put("Prendre les transports",5);
+        twoWE.put("Téléphoner",5);         twoWE.put("Regarder la télévision",5);
+        twoWE.put("Magasiner",5);          twoWE.put("Faire du sport",5);
+        twoWE.put("Dormir",80);
 
         //__________________________________ 04h -> 06h ____________________________________________
         HashMap<String, Integer> fourWE = new HashMap<>();
-        fourWE.put("Travailler",0);         fourWE.put("Manger",0);
-        fourWE.put("Jouer à des jeux",0);   fourWE.put("Prendre les transports",0);
-        fourWE.put("Téléphoner",0);         fourWE.put("Regarder la télévision",0);
-        fourWE.put("Magasiner",0);          fourWE.put("Faire du sport",0);
-        fourWE.put("Dormir",0);
+        fourWE.put("Travailler",5);         fourWE.put("Manger",5);
+        fourWE.put("Jouer à des jeux",5);   fourWE.put("Prendre les transports",5);
+        fourWE.put("Téléphoner",5);         fourWE.put("Regarder la télévision",5);
+        fourWE.put("Magasiner",5);          fourWE.put("Faire du sport",5);
+        fourWE.put("Dormir",80);
 
         //__________________________________ 06h -> 08h ____________________________________________
         HashMap<String, Integer> sizeWE = new HashMap<>();
-        sizeWE.put("Travailler",0);         sizeWE.put("Manger",0);
-        sizeWE.put("Jouer à des jeux",0);   sizeWE.put("Prendre les transports",0);
-        sizeWE.put("Téléphoner",0);         sizeWE.put("Regarder la télévision",0);
-        sizeWE.put("Magasiner",0);          sizeWE.put("Faire du sport",0);
-        sizeWE.put("Dormir",0);
+        sizeWE.put("Travailler",5);         sizeWE.put("Manger",40);
+        sizeWE.put("Jouer à des jeux",15);   sizeWE.put("Prendre les transports",15);
+        sizeWE.put("Téléphoner",10);         sizeWE.put("Regarder la télévision",15);
+        sizeWE.put("Magasiner",20);          sizeWE.put("Faire du sport",10);
+        sizeWE.put("Dormir",50);
 
         //__________________________________ 08h -> 10h ____________________________________________
         HashMap<String, Integer> eightWE = new HashMap<>();
-        eightWE.put("Travailler",0);         eightWE.put("Manger",0);
-        eightWE.put("Jouer à des jeux",0);   eightWE.put("Prendre les transports",0);
-        eightWE.put("Téléphoner",0);         eightWE.put("Regarder la télévision",0);
-        eightWE.put("Magasiner",0);          eightWE.put("Faire du sport",0);
-        eightWE.put("Dormir",0);
+        eightWE.put("Travailler",10);         eightWE.put("Manger",70);
+        eightWE.put("Jouer à des jeux",15);   eightWE.put("Prendre les transports",15);
+        eightWE.put("Téléphoner",10);         eightWE.put("Regarder la télévision",15);
+        eightWE.put("Magasiner",30);          eightWE.put("Faire du sport",10);
+        eightWE.put("Dormir",20);
 
         //__________________________________ 10h -> 12h ____________________________________________
         HashMap<String, Integer> tenWE = new HashMap<>();
-        tenWE.put("Travailler",0);         tenWE.put("Manger",0);
-        tenWE.put("Jouer à des jeux",0);   tenWE.put("Prendre les transports",0);
-        tenWE.put("Téléphoner",0);         tenWE.put("Regarder la télévision",0);
-        tenWE.put("Magasiner",0);          tenWE.put("Faire du sport",0);
-        tenWE.put("Dormir",0);
+        tenWE.put("Travailler",10);         tenWE.put("Manger",30);
+        tenWE.put("Jouer à des jeux",15);   tenWE.put("Prendre les transports",15);
+        tenWE.put("Téléphoner",10);         tenWE.put("Regarder la télévision",15);
+        tenWE.put("Magasiner",40);          tenWE.put("Faire du sport",20);
+        tenWE.put("Dormir",10);
 
         //__________________________________ 12h -> 14h ____________________________________________
         HashMap<String, Integer> twelweWE = new HashMap<>();
-        twelweWE.put("Travailler",0);         twelweWE.put("Manger",0);
-        twelweWE.put("Jouer à des jeux",0);   twelweWE.put("Prendre les transports",0);
-        twelweWE.put("Téléphoner",0);         twelweWE.put("Regarder la télévision",0);
-        twelweWE.put("Magasiner",0);          twelweWE.put("Faire du sport",0);
-        twelweWE.put("Dormir",0);
+        twelweWE.put("Travailler",5);         twelweWE.put("Manger",80);
+        twelweWE.put("Jouer à des jeux",15);   twelweWE.put("Prendre les transports",15);
+        twelweWE.put("Téléphoner",10);         twelweWE.put("Regarder la télévision",15);
+        twelweWE.put("Magasiner",20);          twelweWE.put("Faire du sport",20);
+        twelweWE.put("Dormir",5);
 
         //__________________________________ 14h -> 16h ____________________________________________
         HashMap<String, Integer> fourteenWE = new HashMap<>();
-        fourteenWE.put("Travailler",0);         fourteenWE.put("Manger",0);
-        fourteenWE.put("Jouer à des jeux",0);   fourteenWE.put("Prendre les transports",0);
-        fourteenWE.put("Téléphoner",0);         fourteenWE.put("Regarder la télévision",0);
-        fourteenWE.put("Magasiner",0);          fourteenWE.put("Faire du sport",0);
-        fourteenWE.put("Dormir",0);
+        fourteenWE.put("Travailler",10);         fourteenWE.put("Manger",15);
+        fourteenWE.put("Jouer à des jeux",15);   fourteenWE.put("Prendre les transports",15);
+        fourteenWE.put("Téléphoner",10);         fourteenWE.put("Regarder la télévision",15);
+        fourteenWE.put("Magasiner",20);          fourteenWE.put("Faire du sport",30);
+        fourteenWE.put("Dormir",5);
 
         //__________________________________ 16h -> 18h ____________________________________________
         HashMap<String, Integer> sizeteenWE = new HashMap<>();
-        sizeteenWE.put("Travailler",0);         sizeteenWE.put("Manger",0);
-        sizeteenWE.put("Jouer à des jeux",0);   sizeteenWE.put("Prendre les transports",0);
-        sizeteenWE.put("Téléphoner",0);         sizeteenWE.put("Regarder la télévision",0);
-        sizeteenWE.put("Magasiner",0);          sizeteenWE.put("Faire du sport",0);
-        sizeteenWE.put("Dormir",0);
+        sizeteenWE.put("Travailler",10);         sizeteenWE.put("Manger",5);
+        sizeteenWE.put("Jouer à des jeux",15);   sizeteenWE.put("Prendre les transports",15);
+        sizeteenWE.put("Téléphoner",10);         sizeteenWE.put("Regarder la télévision",15);
+        sizeteenWE.put("Magasiner",20);          sizeteenWE.put("Faire du sport",30);
+        sizeteenWE.put("Dormir",5);
 
         //__________________________________ 18h -> 20h ____________________________________________
         HashMap<String, Integer> eighteenWE = new HashMap<>();
-        eighteenWE.put("Travailler",0);         eighteenWE.put("Manger",0);
-        eighteenWE.put("Jouer à des jeux",0);   eighteenWE.put("Prendre les transports",0);
-        eighteenWE.put("Téléphoner",0);         eighteenWE.put("Regarder la télévision",0);
-        eighteenWE.put("Magasiner",0);          eighteenWE.put("Faire du sport",0);
-        eighteenWE.put("Dormir",0);
+        eighteenWE.put("Travailler",5);         eighteenWE.put("Manger",60);
+        eighteenWE.put("Jouer à des jeux",40);   eighteenWE.put("Prendre les transports",15);
+        eighteenWE.put("Téléphoner",10);         eighteenWE.put("Regarder la télévision",60);
+        eighteenWE.put("Magasiner",20);          eighteenWE.put("Faire du sport",40);
+        eighteenWE.put("Dormir",5);
 
         //__________________________________ 20h -> 22h ____________________________________________
         HashMap<String, Integer> twentyWE = new HashMap<>();
-        twentyWE.put("Travailler",0);         twentyWE.put("Manger",0);
-        twentyWE.put("Jouer à des jeux",0);   twentyWE.put("Prendre les transports",0);
-        twentyWE.put("Téléphoner",0);         twentyWE.put("Regarder la télévision",0);
-        twentyWE.put("Magasiner",0);          twentyWE.put("Faire du sport",0);
-        twentyWE.put("Dormir",0);
+        twentyWE.put("Travailler",5);         twentyWE.put("Manger",60);
+        twentyWE.put("Jouer à des jeux",40);   twentyWE.put("Prendre les transports",15);
+        twentyWE.put("Téléphoner",10);         twentyWE.put("Regarder la télévision",60);
+        twentyWE.put("Magasiner",10);          twentyWE.put("Faire du sport",30);
+        twentyWE.put("Dormir",5);
 
         //__________________________________ 22h -> 00h ____________________________________________
         HashMap<String, Integer> twentytwoWE = new HashMap<>();
-        twentytwoWE.put("Travailler",0);         twentytwoWE.put("Manger",0);
-        twentytwoWE.put("Jouer à des jeux",0);   twentytwoWE.put("Prendre les transports",0);
-        twentytwoWE.put("Téléphoner",0);         twentytwoWE.put("Regarder la télévision",0);
-        twentytwoWE.put("Magasiner",0);          twentytwoWE.put("Faire du sport",0);
-        twentytwoWE.put("Dormir",0);
+        twentytwoWE.put("Travailler",5);         twentytwoWE.put("Manger",15);
+        twentytwoWE.put("Jouer à des jeux",20);   twentytwoWE.put("Prendre les transports",5);
+        twentytwoWE.put("Téléphoner",5);         twentytwoWE.put("Regarder la télévision",30);
+        twentytwoWE.put("Magasiner",5);          twentytwoWE.put("Faire du sport",5);
+        twentytwoWE.put("Dormir",20);
 
 
         weekEndActivitiesStat.put(0, zeroWE);weekEndActivitiesStat.put(12, twelweWE);

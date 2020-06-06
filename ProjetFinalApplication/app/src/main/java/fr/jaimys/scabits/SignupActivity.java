@@ -145,7 +145,7 @@ public class SignupActivity extends AppCompatActivity {
 
                     //Add the new account
                     referenceData.child(getPseudo()).setValue(new User(getPassord(), Build.MODEL,
-                            null,  home,  null,  null, null));
+                    null,  home,  null,  null, null, null));
 
                     //Notify the user
                     Toast.makeText(getApplicationContext(), getPseudo() + " a été ajouté",

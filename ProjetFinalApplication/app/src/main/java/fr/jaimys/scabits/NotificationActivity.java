@@ -20,8 +20,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class NotificationActivity extends AppCompatActivity {
@@ -109,35 +111,60 @@ public class NotificationActivity extends AppCompatActivity {
     }
 
     private void addLocation(Location location) {
-        //Change the place where the user works
-        if (this.activity.equals("Travailler")) {
-            referenceData.child(pseudo).child("work").
-                    setValue(location);
-        }
-        //Add a new shopping place if needed
-        else if (this.activity.equals("Magasiner")) {
-            boolean addLoc = true;
-            if (this.user.getLocations() != null) {
+        switch (this.activity) {
+            //Change the place where the user works
+            case "Travailler":
+                referenceData.child(pseudo).child("work").setValue(location);
+                break;
 
-                for (Location loc : this.user.getLocations().values()) {
-                    if (loc.equals(location)) {
-                        addLoc = false;
-                        break;
+            //Add a new shopping place if it doesnt already exist
+            case "Magasiner": {
+                if (this.user.getLocationsShop() != null) {
+                    boolean addLoc = true;
+                    for (Location loc : this.user.getLocationsShop()) {
+                        if (loc.equals(location)) {
+                            addLoc = false;
+                            break;
+                        }
+                    }
+                    if (addLoc) {
+                        this.user.getLocationsShop().add(location);
+                        referenceData.child(pseudo).child("locationsShop").setValue(this.user.getLocationsShop());
                     }
                 }
-                if (addLoc) {
-                    referenceData.child(pseudo).child("locations").child(Objects.requireNonNull(
-                            referenceData.child(pseudo).child("locations").push().getKey())).
-                            setValue(location);
+                else {
+                    List<Location> listLocShop = new ArrayList<>();
+                    listLocShop.add(location);
+                    referenceData.child(pseudo).child("locationsShop").setValue(listLocShop);
                 }
+                break;
             }
-            else {
-                referenceData.child(pseudo).child("locations").child(Objects.requireNonNull(
-                        referenceData.child(pseudo).child("locations").push().getKey())).
-                        setValue(location);
-            }
-        }
 
+            //Add a new sport place if it doesnt already exist
+            case "Faire du sport": {
+                if (this.user.getLocationsSport() != null) {
+                    boolean addLoc = true;
+                    for (Location loc : this.user.getLocationsSport()) {
+                        if (loc.equals(location)) {
+                            addLoc = false;
+                            break;
+                        }
+                    }
+                    if (addLoc) {
+                        this.user.getLocationsSport().add(location);
+                        referenceData.child(pseudo).child("locationsSport").setValue(this.user.getLocationsSport());
+                    }
+                }
+                {
+                    List<Location> listLocSport = new ArrayList<>();
+                    listLocSport.add(location);
+                    referenceData.child(pseudo).child("locationsSport").setValue(listLocSport);
+                }
+                break;
+            }
+            default:
+                break;
+        }
     }
 
 

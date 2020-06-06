@@ -1,6 +1,7 @@
 package fr.jaimys.scabits;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class User {
 
@@ -13,8 +14,11 @@ public class User {
     private Location home; //Home location
     private Location work; //Work location
 
-    //Location already registered by the apps
-    private HashMap<String, Location> locations;
+    //Location of shopping already registered by the apps
+    private List<Location> locationsSport;
+
+    //Location of sport already registered by the apps
+    private List<Location> locationsShop;
 
     //Agenda of the user : Activity each day, each hour
     private HashMap<String, HashMap<String, DailyActivities>> basicWeek;
@@ -22,18 +26,19 @@ public class User {
     //_________________________________________constructors_________________________________________
     public User() {
         this("null", "null", null, null, null,
-                null, null);
+                null, null, null);
     }
 
     public User(String password, String model, HashMap<String, ActivityCheck> activityChecks,
-                Location home, Location work, HashMap<String, Location> locations,
-                HashMap<String, HashMap<String, DailyActivities>> basicWeek) {
+                Location home, Location work, List<Location> locationsSport,  List<Location>
+                locationsShop, HashMap<String, HashMap<String, DailyActivities>> basicWeek) {
         this.password = password;
         this.model = model;
         this.activityChecks = activityChecks;
         this.home = home;
         this.work = work;
-        this.locations = locations;
+        this.locationsSport = locationsSport;
+        this.locationsShop = locationsShop;
         this.basicWeek = basicWeek;
     }
 
@@ -73,11 +78,18 @@ public class User {
         this.work = work;
     }
 
-    public HashMap<String, Location > getLocations() {
-        return locations;
+    public List<Location> getLocationsSport() {
+        return locationsSport;
     }
-    public void setLocations(HashMap<String, Location > locations) {
-        this.locations = locations;
+    public void setLocationsSport(List<Location> locationsSport) {
+        this.locationsSport = locationsSport;
+    }
+
+    public List<Location> getLocationsShop() {
+        return locationsShop;
+    }
+    public void setLocationsShop(List<Location> locationsShop) {
+        this.locationsShop = locationsShop;
     }
 
     public HashMap<String, HashMap<String, DailyActivities>> getBasicWeek() {
