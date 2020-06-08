@@ -127,15 +127,26 @@ public class HistoricActivity extends AppCompatActivity {
                     {
                         if (Objects.requireNonNull(act.getSensorsInformations().get(key)).isUsed()) {
                             switch (key) {
-                                case "1" : sensors.append("Accélération").append(", "); break;
-                                case "5" : sensors.append("Luminosité").append(", "); break;
-                                case "8" : sensors.append("Proximité").append(", "); break;
-                                case "100" : sensors.append("Localisation").append(", "); break;
-                                default: sensors.append("Inconnu").append(", "); break;
+                                case "S1" : sensors.append("Accélération").append(", "); break;
+                                case "S5" : sensors.append("Luminosité").append(", "); break;
+                                case "S8" : sensors.append("Proximité").append(", "); break;
+                                case "S4" : sensors.append("Gyroscope").append(", "); break;
+                                case "S2" : sensors.append("Magnétomètre").append(", "); break;
+                                default: sensors.append("Autre").append(", "); break;
                             }
                         }
                     }
-                    String sensorStr = sensors.substring(0,sensors.length()-2);
+                    if (!act.getLocation().equals(new Location(0d,0d))){
+                        sensors.append("Localisation").append(", ");
+                    }
+
+                    String sensorStr;
+                    if (sensors.length() != 0) {
+                        sensorStr = sensors.substring(0,sensors.length()-2);
+                    }
+                    else {
+                        sensorStr = "Aucun capteur utilisé";
+                    }
 
                     //Add this item in the list
                     habitsArrayList.add(0,

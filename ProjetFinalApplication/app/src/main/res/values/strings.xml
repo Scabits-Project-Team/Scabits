@@ -36,4 +36,5 @@
     <string name="canalDesc">Test du canal</string>
     <string name="call">Téléphoner</string>
     <string name="eat">Manger</string>
+    <string name="hint_apps">Hint apps</string>
 </resources>

@@ -16,7 +16,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
+            android:paddingHorizontal="12dp"
             >
 
             <LinearLayout
@@ -56,17 +56,20 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/text_historic_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/case_icon"
                 android:orientation="vertical"
+                android:paddingEnd="60dp"
                 android:gravity="center|left"
+                android:layout_centerVertical="true"
                 android:layout_marginStart="10dp"
-                tools:ignore="RelativeOverlap,RtlHardcoded">
+                tools:ignore="RelativeOverlap,RtlHardcoded,RtlSymmetry">
 
                 <TextView
                     android:id="@+id/real_activity"
-                    android:layout_width="@dimen/max_width_item"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/activity"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
@@ -76,14 +79,14 @@
 
                 <TextView
                     android:id="@+id/sensors"
-                    android:layout_width="@dimen/max_width_item"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/sensors_used"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
                     />
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingBottom="5dp"
                     >
@@ -103,7 +106,7 @@
 
                     <TextView
                         android:id="@+id/expected_activity"
-                        android:layout_width="145dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/marginTop_item"
                         android:text="@string/activity"
@@ -115,6 +118,17 @@
                 </LinearLayout>
 
             </LinearLayout>
+
+            <ImageView
+                android:id="@+id/separation_icon"
+                android:layout_width="15dp"
+                android:layout_height="100dp"
+                android:layout_marginEnd="45dp"
+                android:src="@drawable/spear"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:contentDescription="@string/validate_symbol"
+                />
 
 
             <ImageView

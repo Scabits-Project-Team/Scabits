@@ -64,8 +64,8 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     private SensorManager sensorManager;
     private Sensor sensorLight, sensorProximity, sensorAccel, sensorMagneto, sensorGyro;
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
-    private Location locationInfos = new Location(1d,1d);
-    private Location latestLocInfos = new Location(1d,1d);
+    private Location locationInfos = new Location(0d,0d);
+    private Location latestLocInfos = new Location(0d,0d);
 
     //Runnable, handler and timer
     private Button launchCheck;
@@ -198,7 +198,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         return this.pseudo;
     }
 
-    public void notify(View view) {
+    public void notify(String time) {
         //Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, NotificationActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -213,7 +213,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 (AccountActivity.this, CANAL);
         builder.setSmallIcon(R.drawable.notification_icon);
         builder.setContentTitle("Activité rappel");
-        builder.setContentText("Que faites-vous actuellement ?");
+        builder.setContentText("Que faisiez-vous à "+ time +" ?");
         builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         //Set the question page that will fire when the user taps the notification
@@ -276,53 +276,63 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             //Add to the sensor info
             switch (compteurRegister / 3) {
                 case 1 :
-                    sensorInfos.put(String.valueOf(Sensor.TYPE_LIGHT),
-                            new SensorData(true, lightValue, null, null));
-                    sensorInfos.put(String.valueOf(Sensor.TYPE_PROXIMITY),
-                            new SensorData(true, proximityValue, null, null));
-                    sensorInfos.put(String.valueOf(Sensor.TYPE_ACCELEROMETER),
-                            new SensorData(true, accelerometerValues, null, null));
-                    sensorInfos.put(String.valueOf(Sensor.TYPE_GYROSCOPE),
+                    sensorInfos.put("S"+Sensor.TYPE_LIGHT,
+                            new SensorData(false, lightValue, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_PROXIMITY,
+                            new SensorData(false, proximityValue, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_ACCELEROMETER,
+                            new SensorData(false, accelerometerValues, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_GYROSCOPE,
                             new SensorData(false, gyrometerValues, null, null));
-                    sensorInfos.put(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD),
+                    sensorInfos.put("S"+Sensor.TYPE_MAGNETIC_FIELD,
                             new SensorData(false, magnetometerValues, null, null));
                     break;
                 case 2 :
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_LIGHT))
                             .setValue2(lightValue);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_PROXIMITY)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_PROXIMITY))
                             .setValue2(proximityValue);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_ACCELEROMETER)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_ACCELEROMETER))
                             .setValue2(accelerometerValues);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_GYROSCOPE)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_GYROSCOPE))
                             .setValue2(gyrometerValues);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_MAGNETIC_FIELD))
                             .setValue2(magnetometerValues);
                     break;
                 case 3 :
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_LIGHT)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_LIGHT))
                             .setValue3(lightValue);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_PROXIMITY)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_PROXIMITY))
                             .setValue3(proximityValue);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_ACCELEROMETER)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_ACCELEROMETER))
                             .setValue3(accelerometerValues);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_GYROSCOPE)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_GYROSCOPE))
                             .setValue3(gyrometerValues);
-                    Objects.requireNonNull(sensorInfos.get(String.valueOf(Sensor.TYPE_MAGNETIC_FIELD)))
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_MAGNETIC_FIELD))
                             .setValue3(magnetometerValues);
 
                     //Send notification
-                    AccountActivity.this.notify(null);
+                    Date dateValue = new Date(System.currentTimeMillis());
+                    @SuppressLint("SimpleDateFormat")
+                    DateFormat formatter = new SimpleDateFormat("HH:mm");
+                    String time = formatter.format(dateValue);
+                    AccountActivity.this.notify(time);
 
                     //Get location only if it's up to date
+                    Log.d("ALED", "Latest : lat " + latestLocInfos.getLatitude() +
+                                                  "   long " + latestLocInfos.getLongitude());
+                    Log.d("ALED", "Now : lat " + MainActivity.PARAM_LOCATION.getLatitude() +
+                                               "   long " + MainActivity.PARAM_LOCATION.getLongitude());
                     if (latestLocInfos.getLatitude().equals(MainActivity.PARAM_LOCATION.getLatitude())
                     && latestLocInfos.getLongitude().equals(MainActivity.PARAM_LOCATION.getLongitude())){
-                        locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
-                        locationInfos.setLatitude( MainActivity.PARAM_LOCATION.getLatitude());
-                    }
-                    else {
+                        Log.d("ALED", "C LA MEME");
                         locationInfos.setLongitude(0d);
                         locationInfos.setLatitude(0d);
+                    }
+                    else {
+                        Log.d("ALED", "C PAS LA MEME");
+                        locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
+                        locationInfos.setLatitude( MainActivity.PARAM_LOCATION.getLatitude());
                     }
 
                     //Reach historic enable
@@ -354,6 +364,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     @SuppressWarnings("ConstantConditions") @SuppressLint("SimpleDateFormat")
     private String findActivity(HashMap<String, SensorData> sensorInfos, Location location,
                                 long timestamp) {
+        //Reset HashMap values
+        intialisationOfActivityStats();
+
         //Find the day number (sunday to monday)
         Date date = new Date(timestamp);
         DateFormat formatter = new SimpleDateFormat("EEEE");
@@ -387,13 +400,18 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         //Create the list of activities depending on the day and hour
         HashMap<String, Integer> activities;
 
+        int hourValue = Integer.parseInt(hour);
+        hourValue = (hourValue/2)*2;
+
         //If it's the week-end or the middle of the week
         if (day.equals("Sunday") || day.equals("Saturday")) {
-            activities = weekEndActivitiesStat.get(Integer.valueOf(hour));
+            activities = weekEndActivitiesStat.get(hourValue);
         }
         else {
-            activities = weekActivitiesStat.get(Integer.valueOf(hour));
+            activities = weekActivitiesStat.get(hourValue);
         }
+
+        Log.d("ALED", activities.toString());
 
         //Use location
         if (!(location.getLatitude() == 0d && location.getLongitude() == 0d)) {
@@ -473,56 +491,67 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //Use sensors
         float averageLuminosity =
-                (sensorInfos.get(String.valueOf(5)).getValue1().get("luminosity")
-                        + sensorInfos.get(String.valueOf(5)).getValue2().get("luminosity")
-                        + sensorInfos.get(String.valueOf(5)).getValue3().get("luminosity")) /3;
+                (sensorInfos.get("S5").getValue1().get("luminosity")
+                        + sensorInfos.get("S5").getValue2().get("luminosity")
+                        + sensorInfos.get("S5").getValue3().get("luminosity")) /3;
 
         float averageProximity =
-                (sensorInfos.get(String.valueOf(8)).getValue1().get("proximity")
-                        + sensorInfos.get(String.valueOf(8)).getValue2().get("proximity")
-                        + sensorInfos.get(String.valueOf(8)).getValue3().get("proximity")) / 3;
+                (sensorInfos.get("S8").getValue1().get("proximity")
+                        + sensorInfos.get("S8").getValue2().get("proximity")
+                        + sensorInfos.get("S8").getValue3().get("proximity")) / 3;
 
-        float accelerometerXValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("X");
-        float accelerometerXValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("X");
-        float accelerometerXValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("X");
+        float accXValue1 = sensorInfos.get("S1").getValue1().get("X");
+        float accXValue2 = sensorInfos.get("S1").getValue2().get("X");
+        float accXValue3 = sensorInfos.get("S1").getValue3().get("X");
 
-        float accelerometerYValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("Y");
-        float accelerometerYValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("Y");
-        float accelerometerYValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("Y");
+        float accYValue1 = sensorInfos.get("S1").getValue1().get("Y");
+        float accYValue2 = sensorInfos.get("S1").getValue2().get("Y");
+        float accYValue3 = sensorInfos.get("S1").getValue3().get("Y");
 
-        float accelerometerZValue1 = sensorInfos.get(String.valueOf(1)).getValue1().get("Z");
-        float accelerometerZValue2 = sensorInfos.get(String.valueOf(1)).getValue2().get("Z");
-        float accelerometerZValue3 = sensorInfos.get(String.valueOf(1)).getValue3().get("Z");
+        float accZValue1 = sensorInfos.get("S1").getValue1().get("Z");
+        float accZValue2 = sensorInfos.get("S1").getValue2().get("Z");
+        float accZValue3 = sensorInfos.get("S1").getValue3().get("Z");
 
-        float averageAccelerometer = (accelerometerZValue1 + accelerometerZValue2 + accelerometerZValue3) / 3;
+        float averageAccelerometer = (accZValue1 + accZValue2 + accZValue3) / 3;
 
-        if(averageAccelerometer <= 0.3f && averageAccelerometer > -2.0f && averageLuminosity > 10f && averageProximity == 0f){
+        Log.d("ALED", "Proximity : " + averageProximity);
+        Log.d("ALED", "Luminosity : " + averageLuminosity);
+        Log.d("ALED", "Acc : " + averageAccelerometer);
+
+        //&& averageLuminosity > 0f can't relies on because smartphone change a lot
+
+        if(averageAccelerometer <= 5f && averageAccelerometer > -3.0f && averageProximity == 0f){
             int nbr = activities.get("Téléphoner");
             activities.remove("Téléphoner");
             activities.put("Téléphoner", nbr + 60);
+            sensorInfos.get("S1").setUsed(true);
+            sensorInfos.get("S8").setUsed(true);
         }
 
         if (averageLuminosity < 10f && averageProximity == 0f) {
             int nbr = activities.get("Dormir");
             activities.remove("Dormir");
             activities.put("Dormir",nbr + 15);
+            sensorInfos.get("S5").setUsed(true);
+            sensorInfos.get("S8").setUsed(true);
         }
 
         if(averageLuminosity > 1000f) {
             int nbr = activities.get("Faire du sport");
             activities.remove("Faire du sport");
             activities.put("Faire du sport", nbr + 5);
+            sensorInfos.get("S5").setUsed(true);
         }
 
-        if(Math.abs(Math.max(Math.max(accelerometerXValue1, accelerometerXValue2), accelerometerXValue3)) > 2f
-           && Math.abs(Math.max(Math.max(accelerometerYValue1, accelerometerYValue2), accelerometerYValue3)) > 2f
-           && Math.abs(Math.max(Math.max(accelerometerZValue1, accelerometerZValue2), accelerometerZValue3)) > 2f)
+        if(Math.abs(Math.max(Math.max(accXValue1, accXValue2), accXValue3)) > 2f
+           && Math.abs(Math.max(Math.max(accYValue1, accYValue2), accYValue3)) > 2f
+           && Math.abs(Math.max(Math.max(accZValue1, accZValue2), accZValue3)) > 2f)
         {
             int nbr = activities.get("Faire du sport");
             activities.remove("Faire du sport");
             activities.put("Faire du sport", nbr + 10);
+            sensorInfos.get("S1").setUsed(true);
         }
-
 
 
         //Use users' habits
@@ -598,6 +627,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     @Override
     protected void onPause() {
         super.onPause();
+
+        Log.d("ALED", "Latest CHANGEEEEED : lat " + latestLocInfos.getLatitude() +
+                "   long " + latestLocInfos.getLongitude());
 
         //If the user left, store last location
         latestLocInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
