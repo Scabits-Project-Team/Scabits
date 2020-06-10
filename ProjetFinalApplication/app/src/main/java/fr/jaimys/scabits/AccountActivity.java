@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -55,29 +54,29 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     //Global fields
     private String pseudo;
 
-    //Database
+    //Database fields
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private User user = null;
-
-
-    //Sensors fields
+    
+    //Sensors & Location fields
     private ParamSensors paramSensors;
     private SensorManager sensorManager;
     private Sensor sensorLight, sensorProximity, sensorAccel, sensorMagneto, sensorGyro;
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
     private Location locationInfos = new Location(0d,0d);
 
-    //Runnable, handler and timer
+    //Handler and timer fields
     private Button launchCheck;
     private TextView timerCheck;
     private TextView textDataCheck;
-    private Handler handler10s = new Handler();
-    private Handler handler7h = new Handler();
+    private Handler handlerDurationCheck = new Handler();
+    private Handler handlerBetweenCheck = new Handler();
     private int compteurRegister;
     private boolean register;
 
-    private Runnable schedule7h = new Runnable() {
+    //Runnable fields with initialisation
+    private Runnable scheduleBetweenCheck = new Runnable() {
         @Override
         public void run() {
             Log.d("ALED", "Launched");
@@ -85,13 +84,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             new RepetAction(time);
             compteurRegister = 0;
             register = false;
-            handler10s.post(schedule10s);
-
-            handler7h.postDelayed(schedule7h, time * 1000 - SystemClock.elapsedRealtime()%1000);
+            handlerDurationCheck.post(scheduleDurationCheck);
+            handlerBetweenCheck.postDelayed(scheduleBetweenCheck, time * 1000 - SystemClock.elapsedRealtime()%1000);
         }
     };
-
-    private Runnable schedule10s = new Runnable() {
+    private Runnable scheduleDurationCheck = new Runnable() {
         @Override
         public void run() {
             if(compteurRegister <= 10) {
@@ -115,7 +112,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 getDataSensors(compteurRegister, 10); //ajuster temps ici, meme que les 10s du dessus
 
                 compteurRegister++;
-                handler10s.postDelayed(schedule10s,1000 - SystemClock.elapsedRealtime()%1000);
+                handlerDurationCheck.postDelayed(scheduleDurationCheck,1000 - SystemClock.elapsedRealtime()%1000);
             }
             else{
                 sensorManager.unregisterListener(AccountActivity.this);
@@ -158,7 +155,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         btn_disconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handler7h.removeCallbacksAndMessages(null);
+                handlerBetweenCheck.removeCallbacksAndMessages(null);
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
                 finish();
@@ -186,7 +183,6 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
     }
@@ -226,9 +222,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 Context.NOTIFICATION_SERVICE
         );
-        assert notificationManager != null;
 
         //Create a canal for the android version higher than Oreo
+        assert notificationManager != null;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             String channelID = getString(R.string.canalId);
             String channelTitle = getString(R.string.canalTitle);
@@ -239,13 +235,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             notificationManager.createNotificationChannel(notificationChannel);
             builder.setChannelId(channelID);
         }
-
         notificationManager.notify(0, builder.build());
     }
 
     @SuppressWarnings("ConstantConditions")
     private void getDataSensors(int compteurRegister, int timeDataCheck) {
-        //Get only 3 times each data
+        //Get data every 3 sec
         if (compteurRegister % 3 == 0) {
             //Light
             HashMap<String, Float> lightValue = new HashMap<>();
@@ -277,7 +272,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             if (compteurRegister / 3 == 0) {
                 //First, create object and list with only one item
                 /*
-                    If the user is not using this apps in forground, GPS may be desactivated
+                    If the user is not using this apps in forground, GPS might be desactivated
                     We set values at 0, if location change, it will be up to date, otherwise
                     values will be still at 0 and location will not be used
                 */
@@ -327,17 +322,16 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
             locationInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
 
-            Log.d("ALED", "LOCATION INFO : LONGITUDE" + locationInfos.getLongitude()
-                    + " LATITUDE : " + locationInfos.getLatitude());
+            Log.d("ALED", "LOCATION INFO : LONGITUDE : " + locationInfos.getLongitude()
+                                                 + " LATITUDE : " + locationInfos.getLatitude());
 
-            //Send notification
+            //Send notification with the time of the check
             Date dateValue = new Date(System.currentTimeMillis());
             @SuppressLint("SimpleDateFormat")
             DateFormat formatter = new SimpleDateFormat("HH:mm");
             String time = formatter.format(dateValue);
             AccountActivity.this.notify(time);
         }
-
     }
 
 
@@ -552,11 +546,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
 
         //Use users' habits
-        if ((this.user.getBasicWeek() != null) && (this.user.getBasicWeek().containsKey(day))  &&
-            (Objects.requireNonNull(this.user.getBasicWeek().get(day)).containsKey(hour))  )
+        if ((this.user.getBasicWeek() != null) && (this.user.getBasicWeek().containsKey(day))
+                && (this.user.getBasicWeek().get(day).containsKey(hour)))
         {
-            HashMap<String, Integer> habitsActivities = Objects.requireNonNull(Objects.requireNonNull(
-                    this.user.getBasicWeek().get(day)).get(hour)).getActivities();
+            HashMap<String, Integer> habitsActivities =
+                    this.user.getBasicWeek().get(day).get(hour).getActivities();
 
             int sum = 0;
             for (Integer nbrOccurence: habitsActivities.values()) {
@@ -590,9 +584,6 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             }
         }
 
-        //Reset initialisation
-        intialisationOfActivityStats();
-
         return expectedActivity;
     }
 
@@ -615,14 +606,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
             }
         });
-
-        /*if(!handlerLance){
-            handler7h.post(schedule7h);
-        }*/
     }
 
     private boolean isAppOnForeground(Context context) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         assert activityManager != null;
         List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
         if (appProcesses == null) {
@@ -673,7 +660,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
     public void startRunnable(View view) {
-        this.handler7h.post(this.schedule7h);
+        this.handlerBetweenCheck.post(this.scheduleBetweenCheck);
         this.textDataCheck.setText(R.string.analysis);
         this.launchCheck.setEnabled(false);
         this.launchCheck.setVisibility(View.INVISIBLE);
@@ -732,12 +719,8 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
     }
 
-
-
-
     private void intialisationOfActivityStats() {
         //Creation of the classique stats of activities by day
-
         //Week
         this.weekActivitiesStat = new HashMap<>();
 
