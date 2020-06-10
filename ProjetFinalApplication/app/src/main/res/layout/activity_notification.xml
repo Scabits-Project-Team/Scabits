@@ -11,6 +11,7 @@
 
 
     <TextView
+        android:id="@+id/question_notify"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/notification_question"
@@ -309,15 +310,28 @@
     </LinearLayout>
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginBottom="30dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+    >
+        <Button
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/button_unvalidate"
+            android:layout_marginEnd="80dp"
+            android:onClick="cancelCheck"
+            />
 
-   <Button
-       android:layout_width="80dp"
-       android:layout_height="80dp"
-       android:background="@drawable/button_validate"
-       android:onClick="addCheckActivity"
-       android:layout_marginBottom="30dp"
-       android:layout_alignParentBottom="true"
-       android:layout_centerHorizontal="true"
-       />
+        <Button
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/button_validate"
+            android:onClick="addCheckActivity"
+            />
 
+    </LinearLayout>
 </RelativeLayout>

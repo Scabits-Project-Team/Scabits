@@ -2,26 +2,41 @@ package fr.jaimys.scabits;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 
 public class SensorData implements Serializable {
 
     //_________________________________________fields_______________________________________________
     private boolean used;
-    private HashMap<String, Float> value1;
-    private HashMap<String, Float> value2;
-    private HashMap<String, Float> value3;
+    private List<HashMap<String, Float>> values;
+    /*
+    Index - name : value
+    Example 1 :
+        0 - luminosity : 45
+        1 - luminosity : 67
+        2 - luminosity : 52
+
+    Example 2 :
+        0 - X : -5.1617
+            Y :  1.7811
+            Z : -0.9630
+        1 - X : -0.5257
+            Y :  1.1571
+            Z : -1.5281
+        2 - X : -2.1477
+            Y :  2.0643
+            Z : -6.1388
+    */
+
 
     //_________________________________________constructors_________________________________________
     public SensorData() {
-        this(false, null, null,null);
+        this(false, null);
     }
 
-    public SensorData(boolean used, HashMap<String, Float> value1,
-                      HashMap<String, Float> value2, HashMap<String, Float> value3) {
+    public SensorData(boolean used, List<HashMap<String, Float>> values) {
         this.used = used;
-        this.value1 = value1;
-        this.value2 = value2;
-        this.value3 = value3;
+        this.values = values;
     }
 
     //_________________________________________methods______________________________________________
@@ -32,24 +47,10 @@ public class SensorData implements Serializable {
         this.used = used;
     }
 
-    public HashMap<String, Float> getValue1() {
-        return value1;
+    public List<HashMap<String, Float>> getValues() {
+        return values;
     }
-    public void setValue1(HashMap<String, Float> value1) {
-        this.value1 = value1;
-    }
-
-    public HashMap<String, Float> getValue2() {
-        return value2;
-    }
-    public void setValue2(HashMap<String, Float> value2) {
-        this.value2 = value2;
-    }
-
-    public HashMap<String, Float> getValue3() {
-        return value3;
-    }
-    public void setValue3(HashMap<String, Float> value3) {
-        this.value3 = value3;
+    public void setValues(List<HashMap<String, Float>> values) {
+        this.values = values;
     }
 }

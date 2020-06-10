@@ -38,9 +38,11 @@ public class NotificationActivity extends AppCompatActivity {
     private long timestamp;
     private User user = null;
     private ActivityCheck activityCheck;
+    private String time;
 
 
     //_________________________________________methods______________________________________________
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,8 +55,13 @@ public class NotificationActivity extends AppCompatActivity {
 
         //Recuperation of the login
         this.pseudo = getIntent().getStringExtra("pseudo");
+        this.time = getIntent().getStringExtra("time");
         assert this.pseudo != null;
         referenceUser = referenceData.child(this.pseudo).child("activityChecks");
+
+        //Write the question with the right time
+        TextView question = findViewById(R.id.question_notify);
+        question.setText("Quelle activité faisiez-vous à " + time + " ?");
 
         //Set the user profile
         referenceData.child(this.pseudo).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -100,7 +107,6 @@ public class NotificationActivity extends AppCompatActivity {
 
             //Return to the account page
             getIntent().putExtra("pseudo",  this.pseudo);
-            //startActivity(getIntent());
             finish();
         }
         else {
@@ -289,10 +295,6 @@ public class NotificationActivity extends AppCompatActivity {
                 }
 
             }
-            else {
-                //There is a serious problem is we are here..
-                Log.d("ALED", "HELP");
-            }
         }
 
         @Override
@@ -307,5 +309,15 @@ public class NotificationActivity extends AppCompatActivity {
 
     private long getTimestamp() {
         return this.timestamp;
+    }
+
+    public void cancelCheck(View view) {
+        //Notify the user
+        Toast.makeText(getApplicationContext(), "Les données n'ont pas été ajoutées",
+                Toast.LENGTH_SHORT).show();
+
+        //Return to the account page
+        getIntent().putExtra("pseudo",  this.pseudo);
+        finish();
     }
 }
