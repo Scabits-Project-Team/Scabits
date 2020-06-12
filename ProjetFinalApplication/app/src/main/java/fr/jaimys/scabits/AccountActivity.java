@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -22,6 +21,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -32,10 +32,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,51 +46,62 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     //Notification fields
     private static final String CANAL = "MyCanal";
 
+    //Time fields
+    //public static int TIME_PARENT = 120; //in seconds
+    public static int TIME_PARENT = 5; //in hours
+    public static int TIME_CHILD = 10; //in seconds
+
     //Activity search fields
     private HashMap<Integer, HashMap<String, Integer>> weekActivitiesStat;
     private HashMap<Integer, HashMap<String, Integer>> weekEndActivitiesStat;
 
     //Global fields
     private String pseudo;
+    private Button btn_history;
 
-    //Database fields
+    //Database
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private User user = null;
-    
-    //Sensors & Location fields
+
+
+    //Sensors fields
     private ParamSensors paramSensors;
     private SensorManager sensorManager;
     private Sensor sensorLight, sensorProximity, sensorAccel, sensorMagneto, sensorGyro;
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
     private Location locationInfos = new Location(0d,0d);
+    private Location latestLocInfos = new Location(0d,0d);
 
-    //Handler and timer fields
+    //Runnable, handler and timer
     private Button launchCheck;
     private TextView timerCheck;
     private TextView textDataCheck;
-    private Handler handlerDurationCheck = new Handler();
-    private Handler handlerBetweenCheck = new Handler();
+    private Handler handler10s = new Handler();
+    private Handler handler7h = new Handler();
     private int compteurRegister;
     private boolean register;
 
-    //Runnable fields with initialisation
-    private Runnable scheduleBetweenCheck = new Runnable() {
+    private Runnable schedule7h = new Runnable() {
         @Override
         public void run() {
             Log.d("ALED", "Launched");
-            int time = 120;
-            new RepetAction(time);
-            compteurRegister = 0;
+            //int time = 120;
+            //new RepetAction(TIME_PARENT);
+            new RepetAction(TIME_PARENT * 3600);
+            compteurRegister = 1;
             register = false;
-            handlerDurationCheck.post(scheduleDurationCheck);
-            handlerBetweenCheck.postDelayed(scheduleBetweenCheck, time * 1000 - SystemClock.elapsedRealtime()%1000);
+            handler10s.post(schedule10s);
+
+            //handler7h.postDelayed(schedule7h, TIME_PARENT * 1000 - SystemClock.elapsedRealtime()%1000);
+            handler7h.postDelayed(schedule7h, TIME_PARENT * 3600 * 1000 - SystemClock.elapsedRealtime()%1000);
         }
     };
-    private Runnable scheduleDurationCheck = new Runnable() {
+
+    private Runnable schedule10s = new Runnable() {
         @Override
         public void run() {
-            if(compteurRegister <= 10) {
+            if(compteurRegister <= TIME_CHILD) {
                 if(!register){
                     //Register listeners
                     sensorManager.registerListener(AccountActivity.this, sensorLight,
@@ -109,10 +119,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 }
 
                 //Data check
-                getDataSensors(compteurRegister, 10); //ajuster temps ici, meme que les 10s du dessus
+                getDataSensors(compteurRegister);
 
                 compteurRegister++;
-                handlerDurationCheck.postDelayed(scheduleDurationCheck,1000 - SystemClock.elapsedRealtime()%1000);
+                handler10s.postDelayed(schedule10s,1000 - SystemClock.elapsedRealtime()%1000);
             }
             else{
                 sensorManager.unregisterListener(AccountActivity.this);
@@ -151,19 +161,28 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         this.launchCheck = findViewById(R.id.add_check_button);
         this.textDataCheck = findViewById(R.id.text_datacheck);
 
+        ImageView img_settings = findViewById(R.id.img_settings);
+        img_settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(AccountActivity.this, PasswordActivity.class);
+                startActivity(intent);
+            }
+        });
+
         Button btn_disconnect = findViewById(R.id.disconnect);
         btn_disconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handlerBetweenCheck.removeCallbacksAndMessages(null);
+                handler7h.removeCallbacksAndMessages(null);
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
 
-        Button btn_history = findViewById(R.id.history_button);
-        btn_history.setOnClickListener(new View.OnClickListener() {
+        this.btn_history = findViewById(R.id.history_button);
+        this.btn_history.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), HistoricActivity.class);
@@ -183,6 +202,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+
             }
         });
     }
@@ -200,7 +220,6 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         Intent intent = new Intent(this, NotificationActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("pseudo",  this.pseudo);
-        intent.putExtra("time",  time);
         intent.putExtra("activityCheck", createActivityCheck());
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -222,9 +241,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         NotificationManager notificationManager = (NotificationManager) getSystemService(
                 Context.NOTIFICATION_SERVICE
         );
-
-        //Create a canal for the android version higher than Oreo
         assert notificationManager != null;
+
+        //Create a canal for the android version greater than Oreo
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             String channelID = getString(R.string.canalId);
             String channelTitle = getString(R.string.canalTitle);
@@ -235,13 +254,16 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             notificationManager.createNotificationChannel(notificationChannel);
             builder.setChannelId(channelID);
         }
+
         notificationManager.notify(0, builder.build());
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private void getDataSensors(int compteurRegister, int timeDataCheck) {
-        //Get data every 3 sec
+    private void getDataSensors(int compteurRegister) {
+        //Get only 3 times each data
         if (compteurRegister % 3 == 0) {
+            //Can't reach historic
+            this.btn_history.setEnabled(false);
+
             //Light
             HashMap<String, Float> lightValue = new HashMap<>();
             lightValue.put("luminosity", this.paramSensors.getLight());
@@ -269,69 +291,75 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             gyrometerValues.put("Z", this.paramSensors.getGyroZ());
 
             //Add to the sensor info
-            if (compteurRegister / 3 == 0) {
-                //First, create object and list with only one item
-                /*
-                    If the user is not using this apps in forground, GPS might be desactivated
-                    We set values at 0, if location change, it will be up to date, otherwise
-                    values will be still at 0 and location will not be used
-                */
-                if (!isAppOnForeground(getApplicationContext())) {
-                    MainActivity.PARAM_LOCATION.setLongitude(0d);
-                    MainActivity.PARAM_LOCATION.setLatitude(0d);
-                }
+            switch (compteurRegister / 3) {
+                case 1 :
+                    sensorInfos.put("S"+Sensor.TYPE_LIGHT,
+                            new SensorData(false, lightValue, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_PROXIMITY,
+                            new SensorData(false, proximityValue, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_ACCELEROMETER,
+                            new SensorData(false, accelerometerValues, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_GYROSCOPE,
+                            new SensorData(false, gyrometerValues, null, null));
+                    sensorInfos.put("S"+Sensor.TYPE_MAGNETIC_FIELD,
+                            new SensorData(false, magnetometerValues, null, null));
+                    break;
+                case 2 :
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_LIGHT))
+                            .setValue2(lightValue);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_PROXIMITY))
+                            .setValue2(proximityValue);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_ACCELEROMETER))
+                            .setValue2(accelerometerValues);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_GYROSCOPE))
+                            .setValue2(gyrometerValues);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_MAGNETIC_FIELD))
+                            .setValue2(magnetometerValues);
+                    break;
+                case 3 :
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_LIGHT))
+                            .setValue3(lightValue);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_PROXIMITY))
+                            .setValue3(proximityValue);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_ACCELEROMETER))
+                            .setValue3(accelerometerValues);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_GYROSCOPE))
+                            .setValue3(gyrometerValues);
+                    Objects.requireNonNull(sensorInfos.get("S"+Sensor.TYPE_MAGNETIC_FIELD))
+                            .setValue3(magnetometerValues);
 
-                //Create object and put keys
-                List<HashMap<String, Float>> lightListValues = new ArrayList<>();
-                lightListValues.add(lightValue);
-                sensorInfos.put("S" + Sensor.TYPE_LIGHT,
-                        new SensorData(false, lightListValues));
+                    //Send notification
+                    Date dateValue = new Date(System.currentTimeMillis());
+                    @SuppressLint("SimpleDateFormat")
+                    DateFormat formatter = new SimpleDateFormat("HH:mm");
+                    String time = formatter.format(dateValue);
+                    AccountActivity.this.notify(time);
 
-                List<HashMap<String, Float>> proxiListValues = new ArrayList<>();
-                proxiListValues.add(proximityValue);
-                sensorInfos.put("S" + Sensor.TYPE_PROXIMITY,
-                        new SensorData(false, proxiListValues));
+                    //Get location only if it's up to date
+                    Log.d("ALED", "Latest : lat " + latestLocInfos.getLatitude() +
+                                                  "   long " + latestLocInfos.getLongitude());
+                    Log.d("ALED", "Now : lat " + MainActivity.PARAM_LOCATION.getLatitude() +
+                                               "   long " + MainActivity.PARAM_LOCATION.getLongitude());
+                    if (latestLocInfos.getLatitude().equals(MainActivity.PARAM_LOCATION.getLatitude())
+                    && latestLocInfos.getLongitude().equals(MainActivity.PARAM_LOCATION.getLongitude())){
+                        Log.d("ALED", "C LA MEME");
+                        locationInfos.setLongitude(0d);
+                        locationInfos.setLatitude(0d);
+                    }
+                    else {
+                        Log.d("ALED", "C PAS LA MEME");
+                        locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
+                        locationInfos.setLatitude( MainActivity.PARAM_LOCATION.getLatitude());
+                    }
 
-                List<HashMap<String, Float>> accListValues = new ArrayList<>();
-                accListValues.add(accelerometerValues);
-                sensorInfos.put("S" + Sensor.TYPE_ACCELEROMETER,
-                        new SensorData(false, accListValues));
-
-                List<HashMap<String, Float>> gyroListValues = new ArrayList<>();
-                gyroListValues.add(gyrometerValues);
-                sensorInfos.put("S" + Sensor.TYPE_GYROSCOPE,
-                        new SensorData(false, gyroListValues));
-
-                List<HashMap<String, Float>> magneListValues = new ArrayList<>();
-                magneListValues.add(magnetometerValues);
-                sensorInfos.put("S" + Sensor.TYPE_MAGNETIC_FIELD,
-                        new SensorData(false, magneListValues));
-            }
-            else {
-                sensorInfos.get("S" + Sensor.TYPE_LIGHT).getValues().add(lightValue);
-                sensorInfos.get("S" + Sensor.TYPE_PROXIMITY).getValues().add(proximityValue);
-                sensorInfos.get("S" + Sensor.TYPE_ACCELEROMETER).getValues().add(accelerometerValues);
-                sensorInfos.get("S" + Sensor.TYPE_GYROSCOPE).getValues().add(gyrometerValues);
-                sensorInfos.get("S" + Sensor.TYPE_MAGNETIC_FIELD).getValues().add(magnetometerValues);
+                    //Reach historic enable
+                    this.btn_history.setEnabled(true);
+                    break;
+                default:
+                    break;
             }
         }
 
-        //Check is done, add location and send the notification
-        if (compteurRegister == timeDataCheck) {
-            //Get location
-            locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
-            locationInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
-
-            Log.d("ALED", "LOCATION INFO : LONGITUDE : " + locationInfos.getLongitude()
-                                                 + " LATITUDE : " + locationInfos.getLatitude());
-
-            //Send notification with the time of the check
-            Date dateValue = new Date(System.currentTimeMillis());
-            @SuppressLint("SimpleDateFormat")
-            DateFormat formatter = new SimpleDateFormat("HH:mm");
-            String time = formatter.format(dateValue);
-            AccountActivity.this.notify(time);
-        }
     }
 
 
@@ -479,43 +507,40 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
 
         //Use sensors
-        float sumLuminosity = 0;
-        for (HashMap<String, Float> value : sensorInfos.get("S5").getValues()) {
-            sumLuminosity += value.get("luminosity");
-        }
-        float averageLuminosity = sumLuminosity /  sensorInfos.get("S5").getValues().size();
+        float averageLuminosity =
+                (sensorInfos.get("S5").getValue1().get("luminosity")
+                        + sensorInfos.get("S5").getValue2().get("luminosity")
+                        + sensorInfos.get("S5").getValue3().get("luminosity")) /3;
 
+        float averageProximity =
+                (sensorInfos.get("S8").getValue1().get("proximity")
+                        + sensorInfos.get("S8").getValue2().get("proximity")
+                        + sensorInfos.get("S8").getValue3().get("proximity")) / 3;
 
-        float sumProximity = 0;
-        for (HashMap<String, Float> value : sensorInfos.get("S8").getValues()) {
-            sumProximity += value.get("proximity");
-        }
-        float averageProximity = sumProximity /  sensorInfos.get("S8").getValues().size();
+        float accXValue1 = sensorInfos.get("S1").getValue1().get("X");
+        float accXValue2 = sensorInfos.get("S1").getValue2().get("X");
+        float accXValue3 = sensorInfos.get("S1").getValue3().get("X");
 
-        float sumAccZ = 0; //, sumAccY = 0, sumAccX = 0;
-        //Values are setup to be changed at the first loop
-        float minAccX = 10, minAccY = 10, minAccZ = 10;
-        float maxAccX = -10, maxAccY = -10, maxAccZ = -10;
-        for (HashMap<String, Float> value : sensorInfos.get("S1").getValues()) {
-            /* sumAccX += value.get("X"); sumAccY += value.get("Y"); */
-            sumAccZ += value.get("Z");
-            if (maxAccX < value.get("X")) maxAccX = value.get("X");
-            if (maxAccY < value.get("Y")) maxAccY = value.get("Y");
-            if (maxAccZ < value.get("Z")) maxAccZ = value.get("Z");
+        float accYValue1 = sensorInfos.get("S1").getValue1().get("Y");
+        float accYValue2 = sensorInfos.get("S1").getValue2().get("Y");
+        float accYValue3 = sensorInfos.get("S1").getValue3().get("Y");
 
-            if (minAccX > value.get("X")) minAccX = value.get("X");
-            if (minAccY > value.get("Y")) minAccY = value.get("Y");
-            if (minAccZ > value.get("Z")) minAccZ = value.get("Z");
-        }
-        /*float averageAccX = sumAccX /  sensorInfos.get("S1").getValues().size();
-          float averageAccY = sumAccY /  sensorInfos.get("S1").getValues().size(); */
-        float averageAccZ = sumAccZ /  sensorInfos.get("S1").getValues().size();
+        float accZValue1 = sensorInfos.get("S1").getValue1().get("Z");
+        float accZValue2 = sensorInfos.get("S1").getValue2().get("Z");
+        float accZValue3 = sensorInfos.get("S1").getValue3().get("Z");
+
+        float averageAccelerometer = (accZValue1 + accZValue2 + accZValue3) / 3;
+
+        Log.d("ALED", "Proximity : " + averageProximity);
+        Log.d("ALED", "Luminosity : " + averageLuminosity);
+        Log.d("ALED", "Acc : " + averageAccelerometer);
 
         //&& averageLuminosity > 0f can't relies on because smartphone change a lot
-        if(averageAccZ <= 5f && averageAccZ > -3.0f && averageProximity == 0f){
+
+        if(averageAccelerometer <= 5f && averageAccelerometer > -3.0f && averageProximity == 0f){
             int nbr = activities.get("Téléphoner");
             activities.remove("Téléphoner");
-            activities.put("Téléphoner", nbr + 40);
+            activities.put("Téléphoner", nbr + 60);
             sensorInfos.get("S1").setUsed(true);
             sensorInfos.get("S8").setUsed(true);
         }
@@ -535,22 +560,34 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             sensorInfos.get("S5").setUsed(true);
         }
 
-        if ((Math.abs(maxAccX - minAccX) > 2f) && (Math.abs(maxAccY - minAccY) > 2f) &&
-                (Math.abs(maxAccZ - minAccZ) > 2f))
+        float test = Math.max(Math.max(accXValue1, accXValue2), accXValue3);
+        float test2 = Math.min(Math.min(accXValue1, accXValue2), accXValue3);
+
+        Log.d("ALED", "max : " + test + ", min : " + test2);
+
+        float valueX = Math.abs(test - test2);
+        float valueY = Math.abs(Math.max(Math.max(accYValue1, accYValue2), accYValue3)
+                        - Math.min(Math.min(accYValue1, accYValue2), accYValue3));
+        float valueZ = Math.abs(Math.max(Math.max(accZValue1, accZValue2), accZValue3)
+                        - Math.min(Math.min(accZValue1, accZValue2), accZValue3));
+
+        Log.d("ALED", "ValueX : " + valueX + ", ValueY : " + valueY + ", ValueZ : " + valueZ);
+
+        if(valueX > 2f && valueY > 2f && valueZ > 2f)
         {
             int nbr = activities.get("Faire du sport");
             activities.remove("Faire du sport");
-            activities.put("Faire du sport", nbr + 20);
+            activities.put("Faire du sport", nbr + 10);
             sensorInfos.get("S1").setUsed(true);
         }
 
 
         //Use users' habits
-        if ((this.user.getBasicWeek() != null) && (this.user.getBasicWeek().containsKey(day))
-                && (this.user.getBasicWeek().get(day).containsKey(hour)))
+        if ((this.user.getBasicWeek() != null) && (this.user.getBasicWeek().containsKey(day))  &&
+            (Objects.requireNonNull(this.user.getBasicWeek().get(day)).containsKey(hour))  )
         {
-            HashMap<String, Integer> habitsActivities =
-                    this.user.getBasicWeek().get(day).get(hour).getActivities();
+            HashMap<String, Integer> habitsActivities = Objects.requireNonNull(Objects.requireNonNull(
+                    this.user.getBasicWeek().get(day)).get(hour)).getActivities();
 
             int sum = 0;
             for (Integer nbrOccurence: habitsActivities.values()) {
@@ -584,6 +621,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             }
         }
 
+        //Reset initialisation
+        intialisationOfActivityStats();
+
         return expectedActivity;
     }
 
@@ -606,23 +646,22 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
             }
         });
+
+        /*if(!handlerLance){
+            handler7h.post(schedule7h);
+        }*/
     }
 
-    private boolean isAppOnForeground(Context context) {
-        ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-        assert activityManager != null;
-        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-        if (appProcesses == null) {
-            return false;
-        }
-        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                    && appProcess.processName.equals("fr.jaimys.scabits"))
-            {
-                return true;
-            }
-        }
-        return false;
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        Log.d("ALED", "Latest CHANGEEEEED : lat " + latestLocInfos.getLatitude() +
+                "   long " + latestLocInfos.getLongitude());
+
+        //If the user left, store last location
+        latestLocInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
+        latestLocInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
     }
 
     @Override
@@ -660,7 +699,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
     public void startRunnable(View view) {
-        this.handlerBetweenCheck.post(this.scheduleBetweenCheck);
+        this.handler7h.post(this.schedule7h);
         this.textDataCheck.setText(R.string.analysis);
         this.launchCheck.setEnabled(false);
         this.launchCheck.setVisibility(View.INVISIBLE);
@@ -719,8 +758,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
     }
 
+
+
+
     private void intialisationOfActivityStats() {
         //Creation of the classique stats of activities by day
+
         //Week
         this.weekActivitiesStat = new HashMap<>();
 
@@ -730,7 +773,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         zero.put("Jouer à des jeux",15);   zero.put("Prendre les transports",5);
         zero.put("Téléphoner",5);         zero.put("Regarder la télévision",15);
         zero.put("Magasiner",5);          zero.put("Faire du sport",5);
-        zero.put("Dormir",40);
+        zero.put("Dormir",60);
 
         //__________________________________ 02h -> 04h ____________________________________________
         HashMap<String, Integer> two = new HashMap<>();
@@ -738,7 +781,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         two.put("Jouer à des jeux",5);   two.put("Prendre les transports",5);
         two.put("Téléphoner",5);         two.put("Regarder la télévision",5);
         two.put("Magasiner",5);          two.put("Faire du sport",5);
-        two.put("Dormir",60);
+        two.put("Dormir",80);
 
         //__________________________________ 04h -> 06h ____________________________________________
         HashMap<String, Integer> four = new HashMap<>();
@@ -746,7 +789,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         four.put("Jouer à des jeux",5);   four.put("Prendre les transports",5);
         four.put("Téléphoner",5);         four.put("Regarder la télévision",5);
         four.put("Magasiner",5);          four.put("Faire du sport",5);
-        four.put("Dormir",60);
+        four.put("Dormir",80);
 
         //__________________________________ 06h -> 08h ____________________________________________
         HashMap<String, Integer> size = new HashMap<>();
@@ -766,7 +809,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 10h -> 12h ____________________________________________
         HashMap<String, Integer> ten = new HashMap<>();
-        ten.put("Travailler",60);         ten.put("Manger",15);
+        ten.put("Travailler",80);         ten.put("Manger",15);
         ten.put("Jouer à des jeux",5);   ten.put("Prendre les transports",15);
         ten.put("Téléphoner",10);         ten.put("Regarder la télévision",5);
         ten.put("Magasiner",10);          ten.put("Faire du sport",5);
@@ -774,7 +817,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 12h -> 14h ____________________________________________
         HashMap<String, Integer> twelwe = new HashMap<>();
-        twelwe.put("Travailler",40);         twelwe.put("Manger",60);
+        twelwe.put("Travailler",40);         twelwe.put("Manger",80);
         twelwe.put("Jouer à des jeux",5);   twelwe.put("Prendre les transports",15);
         twelwe.put("Téléphoner",10);         twelwe.put("Regarder la télévision",5);
         twelwe.put("Magasiner",10);          twelwe.put("Faire du sport",5);
@@ -782,7 +825,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 14h -> 16h ____________________________________________
         HashMap<String, Integer> fourteen = new HashMap<>();
-        fourteen.put("Travailler",60);         fourteen.put("Manger",15);
+        fourteen.put("Travailler",80);         fourteen.put("Manger",15);
         fourteen.put("Jouer à des jeux",5);   fourteen.put("Prendre les transports",15);
         fourteen.put("Téléphoner",10);         fourteen.put("Regarder la télévision",5);
         fourteen.put("Magasiner",10);          fourteen.put("Faire du sport",10);
@@ -838,7 +881,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         zeroWE.put("Jouer à des jeux",15);   zeroWE.put("Prendre les transports",5);
         zeroWE.put("Téléphoner",5);         zeroWE.put("Regarder la télévision",15);
         zeroWE.put("Magasiner",5);          zeroWE.put("Faire du sport",5);
-        zeroWE.put("Dormir",30);
+        zeroWE.put("Dormir",60);
 
         //__________________________________ 02h -> 04h ____________________________________________
         HashMap<String, Integer> twoWE = new HashMap<>();
@@ -846,7 +889,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         twoWE.put("Jouer à des jeux",5);   twoWE.put("Prendre les transports",5);
         twoWE.put("Téléphoner",5);         twoWE.put("Regarder la télévision",5);
         twoWE.put("Magasiner",5);          twoWE.put("Faire du sport",5);
-        twoWE.put("Dormir",60);
+        twoWE.put("Dormir",80);
 
         //__________________________________ 04h -> 06h ____________________________________________
         HashMap<String, Integer> fourWE = new HashMap<>();
@@ -854,7 +897,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         fourWE.put("Jouer à des jeux",5);   fourWE.put("Prendre les transports",5);
         fourWE.put("Téléphoner",5);         fourWE.put("Regarder la télévision",5);
         fourWE.put("Magasiner",5);          fourWE.put("Faire du sport",5);
-        fourWE.put("Dormir",60);
+        fourWE.put("Dormir",80);
 
         //__________________________________ 06h -> 08h ____________________________________________
         HashMap<String, Integer> sizeWE = new HashMap<>();
@@ -862,11 +905,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         sizeWE.put("Jouer à des jeux",15);   sizeWE.put("Prendre les transports",15);
         sizeWE.put("Téléphoner",10);         sizeWE.put("Regarder la télévision",15);
         sizeWE.put("Magasiner",20);          sizeWE.put("Faire du sport",10);
-        sizeWE.put("Dormir",40);
+        sizeWE.put("Dormir",50);
 
         //__________________________________ 08h -> 10h ____________________________________________
         HashMap<String, Integer> eightWE = new HashMap<>();
-        eightWE.put("Travailler",10);         eightWE.put("Manger",60);
+        eightWE.put("Travailler",10);         eightWE.put("Manger",70);
         eightWE.put("Jouer à des jeux",15);   eightWE.put("Prendre les transports",15);
         eightWE.put("Téléphoner",10);         eightWE.put("Regarder la télévision",15);
         eightWE.put("Magasiner",30);          eightWE.put("Faire du sport",10);
@@ -882,7 +925,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
         //__________________________________ 12h -> 14h ____________________________________________
         HashMap<String, Integer> twelweWE = new HashMap<>();
-        twelweWE.put("Travailler",5);          twelweWE.put("Manger",60);
+        twelweWE.put("Travailler",5);         twelweWE.put("Manger",80);
         twelweWE.put("Jouer à des jeux",15);   twelweWE.put("Prendre les transports",15);
         twelweWE.put("Téléphoner",10);         twelweWE.put("Regarder la télévision",15);
         twelweWE.put("Magasiner",20);          twelweWE.put("Faire du sport",20);
@@ -935,6 +978,14 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         weekEndActivitiesStat.put(6, sizeWE);weekEndActivitiesStat.put(18, eighteenWE);
         weekEndActivitiesStat.put(8, eightWE);weekEndActivitiesStat.put(20, twentyWE);
         weekEndActivitiesStat.put(10, tenWE);weekEndActivitiesStat.put(22, twentytwoWE);
+    }
+
+    public static void setTimeParent(int timeParent) {
+        TIME_PARENT = timeParent;
+    }
+
+    public static void setTimeChild(int timeChild) {
+        TIME_CHILD = timeChild;
     }
 }
 

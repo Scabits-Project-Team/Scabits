@@ -1,7 +1,5 @@
 package fr.jaimys.scabits;
 
-import android.util.Log;
-
 public class ParamLocation {
     private double latitude;
     private double longitude;

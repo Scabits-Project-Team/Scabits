@@ -7,10 +7,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -19,10 +22,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -31,7 +41,9 @@ public class HistoricActivity extends AppCompatActivity {
 
     //_________________________________________fields_______________________________________________
     private List<DataHabits> habitsArrayList;
+    private RecyclerView recyclerView;
     private DataHabitsAdapter habitsAdapter;
+    private static final String TAG = "HistoricalStatut";
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private String pseudo;
@@ -55,7 +67,7 @@ public class HistoricActivity extends AppCompatActivity {
         habitsArrayList = new ArrayList<>();
 
         //Get RecyclerView set it up
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -89,6 +101,10 @@ public class HistoricActivity extends AppCompatActivity {
                     formatter.setTimeZone(TimeZone.getDefault());
                     String time = formatter.format(date);
 
+                    //Find the day of the week
+                    @SuppressLint("SimpleDateFormat") DateFormat formatter2 =new SimpleDateFormat("EEEE");
+                    String day = formatter2.format(date);
+
                     //Set the icon activity
                     String tag;
                     switch (act.getRealActivity()) {
@@ -106,6 +122,7 @@ public class HistoricActivity extends AppCompatActivity {
 
                     //Set the sensors used by getting the number
                     StringBuilder sensors = new StringBuilder();
+                    int i = 1;
                     for (String key : act.getSensorsInformations().keySet())
                     {
                         if (Objects.requireNonNull(act.getSensorsInformations().get(key)).isUsed()) {
