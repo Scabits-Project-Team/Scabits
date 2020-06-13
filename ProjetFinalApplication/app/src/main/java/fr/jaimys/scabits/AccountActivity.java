@@ -22,6 +22,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -46,6 +47,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     //_________________________________________fields_______________________________________________
     //Notification fields
     private static final String CANAL = "MyCanal";
+
+    //Time fields
+    public static int TIME_PARENT = 5; //in hours
+    public static int TIME_CHILD = 10; //in seconds
 
     //Activity search fields
     private HashMap<Integer, HashMap<String, Integer>> weekActivitiesStat;
@@ -80,18 +85,18 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         @Override
         public void run() {
             Log.d("ALED", "Launched");
-            int time = 120;
-            new RepetAction(time);
+            new RepetAction(TIME_PARENT * 3600);
             compteurRegister = 0;
             register = false;
             handlerDurationCheck.post(scheduleDurationCheck);
-            handlerBetweenCheck.postDelayed(scheduleBetweenCheck, time * 1000 - SystemClock.elapsedRealtime()%1000);
+            handlerBetweenCheck.postDelayed(scheduleBetweenCheck,
+                    TIME_PARENT * 3600 * 1000 - SystemClock.elapsedRealtime()%1000);
         }
     };
     private Runnable scheduleDurationCheck = new Runnable() {
         @Override
         public void run() {
-            if(compteurRegister <= 10) {
+            if(compteurRegister <= TIME_CHILD) {
                 if(!register){
                     //Register listeners
                     sensorManager.registerListener(AccountActivity.this, sensorLight,
@@ -109,7 +114,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 }
 
                 //Data check
-                getDataSensors(compteurRegister, 10); //ajuster temps ici, meme que les 10s du dessus
+                getDataSensors(compteurRegister);
 
                 compteurRegister++;
                 handlerDurationCheck.postDelayed(scheduleDurationCheck,1000 - SystemClock.elapsedRealtime()%1000);
@@ -150,6 +155,15 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         this.timerCheck = findViewById(R.id.timer_next_check);
         this.launchCheck = findViewById(R.id.add_check_button);
         this.textDataCheck = findViewById(R.id.text_datacheck);
+
+        ImageView img_settings = findViewById(R.id.img_settings);
+        img_settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(AccountActivity.this, PasswordActivity.class);
+                startActivity(intent);
+            }
+        });
 
         Button btn_disconnect = findViewById(R.id.disconnect);
         btn_disconnect.setOnClickListener(new View.OnClickListener() {
@@ -239,7 +253,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void getDataSensors(int compteurRegister, int timeDataCheck) {
+    private void getDataSensors(int compteurRegister) {
         //Get data every 3 sec
         if (compteurRegister % 3 == 0) {
             //Light
@@ -317,7 +331,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
 
         //Check is done, add location and send the notification
-        if (compteurRegister == timeDataCheck) {
+        if (compteurRegister == TIME_CHILD) {
             //Get location
             locationInfos.setLongitude(MainActivity.PARAM_LOCATION.getLongitude());
             locationInfos.setLatitude(MainActivity.PARAM_LOCATION.getLatitude());
@@ -935,6 +949,13 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         weekEndActivitiesStat.put(6, sizeWE);weekEndActivitiesStat.put(18, eighteenWE);
         weekEndActivitiesStat.put(8, eightWE);weekEndActivitiesStat.put(20, twentyWE);
         weekEndActivitiesStat.put(10, tenWE);weekEndActivitiesStat.put(22, twentytwoWE);
+    }
+
+    public static void setTimeParent(int timeParent) {
+        TIME_PARENT = timeParent;
+    }
+    public static void setTimeChild(int timeChild) {
+        TIME_CHILD = timeChild;
     }
 }
 
