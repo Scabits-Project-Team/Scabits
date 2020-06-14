@@ -10,9 +10,19 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+/**
+ * Activity that allow the user to change the values of TIME_PARENT and TIME_CHILD in AccountActivity.
+ */
 public class SettingsActivity extends AppCompatActivity {
 
     //_________________________________________methods______________________________________________
+
+    /**
+     * Fill the spinners with a few numbers.
+     * The items that are selected by default are the items that have the same values as the current TIME_PARENT and TIME_CHILD.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
+     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

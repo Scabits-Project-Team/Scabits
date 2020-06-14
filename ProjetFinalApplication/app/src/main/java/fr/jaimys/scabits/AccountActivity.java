@@ -41,15 +41,24 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-
+/**
+ * Activity that launch the timer.
+ */
 public class AccountActivity extends AppCompatActivity implements SensorEventListener {
 
     //_________________________________________fields_______________________________________________
-    //Notification fields
+    /**
+     * Name of the notification's canal.
+     */
     private static final String CANAL = "MyCanal";
 
-    //Time fields
+    /**
+     * The time between each data collection. By default, the value is 5 (in hours).
+     */
     public static int TIME_PARENT = 5; //in hours
+    /**
+     * The duration of a data collection. By default, the value is 10 (in seconds).
+     */
     public static int TIME_CHILD = 10; //in seconds
 
     //Activity search fields
@@ -63,11 +72,35 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference referenceData = database.getReference();
     private User user = null;
-    
-    //Sensors & Location fields
+
+    /**
+     * Object that contains all the values returned by sensors.
+     */
     private ParamSensors paramSensors;
+    /**
+     * Object that let us access the device's sensors.
+     */
     private SensorManager sensorManager;
-    private Sensor sensorLight, sensorProximity, sensorAccel, sensorMagneto, sensorGyro;
+    /**
+     * The light sensor.
+     */
+    private Sensor sensorLight;
+    /**
+     * The proximity sensor.
+     */
+    private Sensor sensorProximity;
+    /**
+     * The accelerometer sensor.
+     */
+    private Sensor sensorAccel;
+    /**
+     * The magnetometer sensors.
+     */
+    private Sensor sensorMagneto;
+    /**
+     * The gyrometer sensor.
+     */
+    private Sensor sensorGyro;
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
     private Location locationInfos = new Location(0d,0d);
 
@@ -75,12 +108,26 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     private Button launchCheck;
     private TextView timerCheck;
     private TextView textDataCheck;
+    /**
+     * Handler that manages the runnable scheduleDurationCheck.
+     */
     private Handler handlerDurationCheck = new Handler();
+    /**
+     * Handler that manages the runnable scheduleBetweenCheck.
+     */
     private Handler handlerBetweenCheck = new Handler();
+    /**
+     * Indicate how many times the runnable scheduleDurationCheck has been called.
+     */
     private int compteurRegister;
+    /**
+     * Indicate if the runnable scheduleDurationCheck has been called.
+     */
     private boolean register;
 
-    //Runnable fields with initialisation
+    /**
+     * Runnable whose task is to run the scheduleDurationCheck every TIME_PARENT*3600*1000 seconds.
+     */
     private Runnable scheduleBetweenCheck = new Runnable() {
         @Override
         public void run() {
@@ -93,6 +140,9 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                     TIME_PARENT * 3600 * 1000 - SystemClock.elapsedRealtime()%1000);
         }
     };
+    /**
+     * Runnable whose task is to register the sensor event listeners during TIME_CHILD seconds and then unregister them.
+     */
     private Runnable scheduleDurationCheck = new Runnable() {
         @Override
         public void run() {
@@ -639,6 +689,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         return false;
     }
 
+    /**
+     * This method is launched every time the values of a sensor change.
+     * Change the values of paramSensors with the new values.
+     * @param event the SensorEvent object that contains the type of sensor activated and the new values.
+     */
     @Override
     public void onSensorChanged(SensorEvent event) {
         switch (event.sensor.getType()) {
@@ -668,6 +723,13 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
     }
 
+    /**
+     * Called when the accuracy of the registered sensor has changed. Unlike onSensorChanged(),
+     * this is only called when this accuracy value changes.
+     * Method never changed but it was needed to override it because of the SensorEventListener interface.
+     * @param sensor the sensor.
+     * @param accuracy The new accuracy of this sensor.
+     */
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -951,9 +1013,18 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         weekEndActivitiesStat.put(10, tenWE);weekEndActivitiesStat.put(22, twentytwoWE);
     }
 
+    /**
+     * Change the value of TIME_PARENT with the new value passed as parameter.
+     * @param timeParent the new value of TIME_PARENT
+     */
     public static void setTimeParent(int timeParent) {
         TIME_PARENT = timeParent;
     }
+
+    /**
+     * Change the value of TIME_CHILD with the new value passed as parameter.
+     * @param timeChild the new value of TIME_CHILD.
+     */
     public static void setTimeChild(int timeChild) {
         TIME_CHILD = timeChild;
     }

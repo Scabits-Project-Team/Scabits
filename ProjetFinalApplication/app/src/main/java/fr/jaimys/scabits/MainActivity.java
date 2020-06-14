@@ -18,16 +18,41 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+/**
+ * First activity display. Ask to the user the permission to use the GPS of his smartphone.
+ * Allow the user to connect if he already has an account or to create a new account if not.
+ */
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
     //_________________________________________fields_______________________________________________
+    /**
+     * Object that provides access to the system location services.
+     */
     private LocationManager locationManager = null;
+    /**
+     * Request code of the permission request.
+     */
     private static final int PERM_REQ_ID = 1234;
+    /**
+     * Indicate if the user has denied the access to the GPS and select the Never Ask Again option.
+     */
     private boolean deniedForever = false;
+    /**
+     * Object that contains the longitude and latitude values of the current location of the smartphone.
+     */
     public static ParamLocation PARAM_LOCATION;
+    /**
+     * Object that contains the locationManager instance and the MainActivty instance.
+     */
     public static LocationStorage LOCATION_STORAGE = null;
 
     //_________________________________________methods______________________________________________
+
+    /**
+     * Instanciate the PARAM_LOCATION attribute.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
+     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,10 +60,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         //Instanciation of ParamLocation
         MainActivity.PARAM_LOCATION = new ParamLocation();
-
-
     }
 
+    /**
+     * Launch the LoginActivity class and close this activity.
+     * @param view the view.
+     */
     public void launchLoginActivity(View view) {
         //Redirect to the login page
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -46,6 +73,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         finish();
     }
 
+    /**
+     * Launch the SignupActivity class and close this activity.
+     * @param view the view.
+     */
     public void launchSignUpActivity(View view) {
         //Redirect to the singup page
         Intent intent = new Intent(getApplicationContext(), SignupActivity.class);
@@ -53,6 +84,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         finish();
     }
 
+    /**
+     * Call the checkPermissions method so that each time the activity comes back in foreground we can check if we still have the
+     * permission to use the GPS.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -60,15 +95,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         checkPermissions();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        /*if(this.locationManager != null){
-            this.locationManager.removeUpdates(this);
-        }*/
-    }
-
+    /**
+     * Check if we have the permission to use the GPS and if not we call the requestPermission method.
+     */
     private void checkPermissions() {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED
@@ -101,6 +130,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    /**
+     * If the user launch the application for the first time or if he previously denied the permission, it launch
+     * a popup dialogue interface to ask him if he want to activate the GPS.
+     * If the user previously denied the permission and check the Never Ask Again option it simply display a Toast message
+     * to remind him that the application doesn't have access to the GPS.
+     */
     private void requestPermission(){
         if(ActivityCompat.shouldShowRequestPermissionRationale(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -146,6 +181,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    /**
+     * Callback for the result from requesting permissions. This method is invoked for every call on requestPermissions.
+     * If we have the permission we display a Toast message to remind the user to activate the GPS and restart the application.
+     * @param requestCode the request code passed in requestPermissions.
+     * @param permissions The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions which is either PERMISSION_GRANTED or PERMISSION_DENIED.
+     *                     Never null.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -158,6 +201,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
+    /**
+     * Called when the location has changed. We change the values of PARAM_LOCATION with the new values.
+     * @param location the updated location. This value cannot be null.
+     */
     @Override
     public void onLocationChanged(Location location) {
         MainActivity.PARAM_LOCATION.setLatitude(location.getLatitude());
@@ -166,16 +213,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                                 MainActivity.PARAM_LOCATION.getLongitude());
     }
 
+    /**
+     * This callback will never be invoked on Android Q and above.
+     * Method never changed but it was needed to override it because of the LocationListener interface.
+     * @param provider N/A.
+     * @param status N/A.
+     * @param extras N/A.
+     */
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
     }
 
+    /**
+     * Called when the provider is enabled by the user.
+     * Method never changed but it was needed to override it because of the LocationListener interface.
+     * @param provider the name of the location provider that has become enabled. This value cannot be null.
+     */
     @Override
     public void onProviderEnabled(String provider) {
 
     }
 
+    /**
+     * Called when the provider is disabled by the user. If requestLocationUpdates is called on an already disabled provider,
+     * this method is called immediately.
+     * Method never changed but it was needed to override it because of the LocationListener interface.
+     * @param provider the name of the location provider that has become disabled. This value cannot be null.
+     */
     @Override
     public void onProviderDisabled(String provider) {
 

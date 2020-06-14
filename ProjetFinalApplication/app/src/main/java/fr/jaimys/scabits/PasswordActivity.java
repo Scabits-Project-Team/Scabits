@@ -9,12 +9,25 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+/**
+ * Activity that allow us to connect to the admin settings.
+ */
 public class PasswordActivity extends AppCompatActivity {
 
     //_________________________________________field_______________________________________________
+    /**
+     * The password.
+     */
     private static final String PASSWORD = "Linstead";
 
     //_________________________________________methods______________________________________________
+
+    /**
+     * Compare the string value written by the user with the actual password. If those strings are equal then the user can access
+     * to the settings activity.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
+     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
