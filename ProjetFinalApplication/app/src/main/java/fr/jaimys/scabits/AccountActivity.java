@@ -55,22 +55,37 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     /**
      * The time between each data collection. By default, the value is 5 (in hours).
      */
-    public static int TIME_PARENT = 5; //in hours
+    public static int TIME_PARENT = 5;
     /**
      * The duration of a data collection. By default, the value is 10 (in seconds).
      */
-    public static int TIME_CHILD = 10; //in seconds
+    public static int TIME_CHILD = 10;
 
-    //Activity search fields
+    /**
+     * The agenda of activities each 2 hours associate to a number (a probability) for the week.
+     */
     private HashMap<Integer, HashMap<String, Integer>> weekActivitiesStat;
+    /**
+     * The agenda of activities each 2 hours associate to a number (a probability) for the weekend.
+     */
     private HashMap<Integer, HashMap<String, Integer>> weekEndActivitiesStat;
 
-    //Global fields
+    /**
+     * The login of the current user.
+     */
     private String pseudo;
 
-    //Database fields
+    /**
+     * The instance of the database (Firebase).
+     */
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    /**
+     * THe eference of the root in the database.
+     */
     private DatabaseReference referenceData = database.getReference();
+    /**
+     * User object currently connected.
+     */
     private User user = null;
 
     /**
@@ -101,12 +116,26 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
      * The gyrometer sensor.
      */
     private Sensor sensorGyro;
+    /**
+     * The collection of each sensor informations.
+     */
     private HashMap<String, SensorData>  sensorInfos = new HashMap<>();
+    /**
+     * The location taken during the data collection.
+     */
     private Location locationInfos = new Location(0d,0d);
 
-    //Handler and timer fields
+    /**
+     * The launcher button that starts the timer.
+     */
     private Button launchCheck;
+    /**
+     * The timer view linked to the timer bewteen 2 collection of data.
+     */
     private TextView timerCheck;
+    /**
+     * The text above the timer.
+     */
     private TextView textDataCheck;
     /**
      * Handler that manages the runnable scheduleDurationCheck.
@@ -141,7 +170,8 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
     };
     /**
-     * Runnable whose task is to register the sensor event listeners during TIME_CHILD seconds and then unregister them.
+     * Runnable whose task is to register the sensor event listeners during TIME_CHILD seconds and
+     * then unregister them.
      */
     private Runnable scheduleDurationCheck = new Runnable() {
         @Override
@@ -167,6 +197,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
                 getDataSensors(compteurRegister);
 
                 compteurRegister++;
+                //Wait one second
                 handlerDurationCheck.postDelayed(scheduleDurationCheck,1000 - SystemClock.elapsedRealtime()%1000);
             }
             else{
@@ -177,12 +208,19 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
 
     //_________________________________________methods______________________________________________
+    /**
+     * Create the fields required like sensors and timer params. Buttons are setting up and linked
+     * to their function. Restore the user object stored in the database by using the login.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut
+     *                           down then this Bundle contains the data it most recently supplied
+     *                           in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        //Set the basic appearance stats for each activity
+        //Set the basic stats for each activity
         intialisationOfActivityStats();
 
         //Recuperation of the login
@@ -251,14 +289,28 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         });
     }
 
+    /**
+     * Change the user value with the one passed in parameter.
+     * @param value The new User object(User).
+     */
     private void setUser(User value) {
         this.user = value;
     }
 
+    /**
+     * Get the user login.
+     * @return The current login(String).
+     */
     private String getPseudo() {
         return this.pseudo;
     }
 
+    /**
+     * Create and launch the notification. Pass the ActivityCheck object that contains all the
+     * sensors informations and th expected activity.
+     * @param time The time at the data collection, format HH:MM(String).
+     * @see AccountActivity#getDataSensors(int)
+     */
     public void notify(String time) {
         //Create an explicit intent for an Activity in your app
         Intent intent = new Intent(this, NotificationActivity.class);
@@ -302,6 +354,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         notificationManager.notify(0, builder.build());
     }
 
+    /**
+     * Collect data of sensors every 3 seconds and store in the database. When the timer is over,
+     * the location is getting too and we call the notify method.
+     * @param compteurRegister The timer of the collect(int).
+     * @see AccountActivity#notify(String)
+     */
     @SuppressWarnings("ConstantConditions")
     private void getDataSensors(int compteurRegister) {
         //Get data every 3 sec
@@ -394,11 +452,16 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
             @SuppressLint("SimpleDateFormat")
             DateFormat formatter = new SimpleDateFormat("HH:mm");
             String time = formatter.format(dateValue);
-            AccountActivity.this.notify(time);
+            notify(time);
         }
     }
 
-
+    /**
+     * Create ActivityCheck object that contains sensors and location informations and the expected
+     * activity. The real activity will be set in the NoticationActivity.
+     * @return Activity created(Activitycheck).
+     * @see AccountActivity#findActivity(HashMap, Location, long)
+     */
     private ActivityCheck createActivityCheck() {
         //Get the current timestamp
         long timestamp = System.currentTimeMillis();
@@ -413,7 +476,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         return act;
     }
 
-
+    /**
+     * Find the acitivty that the user is supposed to do by using habits stored in the database,
+     * the sensors and location data collected, the collection of activities by hour.
+     * @return Expected activity that we try to find(String).
+     * @see AccountActivity#createActivityCheck()
+     */
     @SuppressWarnings("ConstantConditions") @SuppressLint("SimpleDateFormat")
     private String findActivity(HashMap<String, SensorData> sensorInfos, Location location,
                                 long timestamp) {
@@ -652,6 +720,10 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
     }
 
 
+    /**
+     * Reset the user with the one stored in the database to be sure to have the current one (with
+     * last changes)
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -672,6 +744,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         });
     }
 
+    /**
+     * Check if the apps is in foreground or not by checking each activity.
+     * @return True if the apps is in foreground, else False(booelan).
+     * @see AccountActivity#getDataSensors(int)
+     */
     private boolean isAppOnForeground(Context context) {
         ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
         assert activityManager != null;
@@ -735,6 +812,11 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
 
     }
 
+    /**
+     * Start the timer and the data check, change the text to show the timer and hide the play
+     * button.
+     * @param view Play button that calls this method(View).
+     */
     public void startRunnable(View view) {
         this.handlerBetweenCheck.post(this.scheduleBetweenCheck);
         this.textDataCheck.setText(R.string.analysis);
@@ -744,21 +826,50 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         this.timerCheck.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Class that launchs the runnable for the timer showed on the screen.
+     * @see AccountActivity#handlerBetweenCheck
+     */
     public class RepetAction {
-        Timer t;
+        //_______________________________________fields_____________________________________________
+        /**
+         * The timer of the next data collect.
+         */
+        private Timer t;
 
+        //_______________________________________constructors_______________________________________
+        /**
+         * Create and launch the timer.
+         * @param time Duration of the timer(int).
+         */
         public RepetAction(int time) {
             t = new Timer();
             t.schedule(new MyAction(time), 0, 1000);
         }
 
+        /**
+         * Class that contains the timer showed on the screen.
+         */
         class MyAction extends TimerTask {
-            int timeLeft;
+            //_____________________________________fields___________________________________________
+            /**
+             * Time left in second.
+             */
+            private int timeLeft;
 
+            //_____________________________________constructors_____________________________________
+            /**
+             * Set the time left.
+             * @param time time Duration of the timer(int).
+             */
             public MyAction(int time) {
                 timeLeft = time;
             }
 
+            //_____________________________________methods__________________________________________
+            /**
+             * Run the timer and change the text on the screen
+             */
             public void run() {
                 if (timeLeft > 0) {
                     String hour = "";
@@ -795,6 +906,12 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
         }
     }
 
+    /**
+     * Initialize the collection of activites use for searching the activity the user could do.
+     * @see AccountActivity#weekActivitiesStat
+     * @see AccountActivity#weekEndActivitiesStat
+     * @see AccountActivity#getDataSensors(int)
+     */
     private void intialisationOfActivityStats() {
         //Creation of the classique stats of activities by day
         //Week

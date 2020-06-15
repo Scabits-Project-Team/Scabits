@@ -16,17 +16,17 @@ public class PasswordActivity extends AppCompatActivity {
 
     //_________________________________________field_______________________________________________
     /**
-     * The password.
+     * The password, mandatory for using settings as admin.
      */
     private static final String PASSWORD = "Linstead";
 
     //_________________________________________methods______________________________________________
-
     /**
-     * Compare the string value written by the user with the actual password. If those strings are equal then the user can access
-     * to the settings activity.
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
-     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     * Compare the string value written by the user with the actual password. If those strings are
+     * equal then the user can access to the settings activity.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut
+     *                           down then this Bundle contains the data it most recently supplied
+     *                           in onSaveInstanceState(Bundle).
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +49,14 @@ public class PasswordActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String attemptPassword = editTextPassword.getText().toString();
                 if(attemptPassword.compareTo(PASSWORD) == 0) {
-                    Intent intent = new Intent(PasswordActivity.this, SettingsActivity.class);
+                    Intent intent = new Intent(PasswordActivity.this,
+                            SettingsActivity.class);
                     startActivity(intent);
                     finish();
                 }
                 else {
-                    Toast.makeText(PasswordActivity.this, "Mot de passe incorrect", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PasswordActivity.this, "Mot de passe incorrect",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
         });
