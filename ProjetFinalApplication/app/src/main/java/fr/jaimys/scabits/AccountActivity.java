@@ -80,7 +80,7 @@ public class AccountActivity extends AppCompatActivity implements SensorEventLis
      */
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     /**
-     * THe eference of the root in the database.
+     * The reference of the root in the database.
      */
     private DatabaseReference referenceData = database.getReference();
     /**

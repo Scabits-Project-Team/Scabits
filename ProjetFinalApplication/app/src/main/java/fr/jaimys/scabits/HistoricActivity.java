@@ -27,51 +27,45 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 
+/**
+ * Activity that show every data collection and survey send to the user on his activities.
+ * @see AccountActivity
+ */
 public class HistoricActivity extends AppCompatActivity {
 
     //_________________________________________fields_______________________________________________
+    /**
+     * The list of data collection.
+     */
     private List<DataHabits> habitsArrayList;
+    /**
+     * The adapter to load items.
+     */
     private DataHabitsAdapter habitsAdapter;
+    /**
+     * The instance of the database (Firebase).
+     */
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    /**
+     * The reference of the root in the database.
+     */
     private DatabaseReference referenceData = database.getReference();
+    /**
+     * The login of the user.
+     */
     private String pseudo;
+    /**
+     * The progress bar showed until items are loaded.
+     */
     private ProgressBar loading;
+    /**
+     * The text to inform the user that no data collection has been done yet.
+     */
     private TextView noItemText;
-
-
-    //_________________________________________methods______________________________________________
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_historic);
-
-        //Set the loading
-        this.loading = findViewById(R.id.loadHistoric);
-        this.noItemText = findViewById(R.id.no_item_text);
-
-        //Recuperation of the login
-        this.pseudo = getIntent().getStringExtra("pseudo");
-        //Instantiation of the list
-        habitsArrayList = new ArrayList<>();
-
-        //Get RecyclerView set it up
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        //Create DataHabitsAdapter and set it up
-        habitsAdapter = new DataHabitsAdapter(this, habitsArrayList);
-        recyclerView.setAdapter(habitsAdapter);
-
-        //Add some data
-        referenceData.child(this.pseudo).child("activityChecks").orderByChild("time")
-                .addListenerForSingleValueEvent(valueEventListener);
-
-        //Notify data changed
-        habitsAdapter.notifyDataSetChanged();
-    }
-
-    ValueEventListener valueEventListener = new ValueEventListener() {
+    /**
+     * Event that load items in the list by checking in the database.
+     */
+    private ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
             habitsArrayList.clear();
@@ -133,8 +127,8 @@ public class HistoricActivity extends AppCompatActivity {
 
                     //Add this item in the list
                     habitsArrayList.add(0,
-                             new DataHabits(act.getRealActivity(),act.getExpectedActivity(),
-                                   tag,sensorStr, time));
+                            new DataHabits(act.getRealActivity(),act.getExpectedActivity(),
+                                    tag,sensorStr, time));
                 }
             }
             else {
@@ -150,11 +144,56 @@ public class HistoricActivity extends AppCompatActivity {
         }
     };
 
+
+    //_________________________________________methods______________________________________________
+    /**
+     * Create the fields required. Set adapter and recycler view and call the filling of the list.
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut
+     *                           down then this Bundle contains the data it most recently supplied
+     *                           in onSaveInstanceState(Bundle).
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_historic);
+
+        //Set the loading
+        this.loading = findViewById(R.id.loadHistoric);
+        this.noItemText = findViewById(R.id.no_item_text);
+
+        //Recuperation of the login
+        this.pseudo = getIntent().getStringExtra("pseudo");
+        //Instantiation of the list
+        habitsArrayList = new ArrayList<>();
+
+        //Get RecyclerView set it up
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        //Create DataHabitsAdapter and set it up
+        habitsAdapter = new DataHabitsAdapter(this, habitsArrayList);
+        recyclerView.setAdapter(habitsAdapter);
+
+        //Add some data
+        referenceData.child(this.pseudo).child("activityChecks").orderByChild("time")
+                .addListenerForSingleValueEvent(valueEventListener);
+
+        //Notify data changed
+        habitsAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Hide the loading bar.
+     */
     private void hideLoading() {
         this.loading.setVisibility(View.INVISIBLE);
     }
 
-    public void backAccountPage(View view) {
+    /**
+     * Get back to the Account Activity.
+     */
+    public void backAccountPage() {
         //Launch Account Activity and pass the pseudo just in case
         getIntent().putExtra("pseudo",  this.pseudo);
         finish();

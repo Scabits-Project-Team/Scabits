@@ -30,7 +30,7 @@
     <string name="historic_no_item">Aucune activité n\'a encore été enregistré</string>
     <string name="example_time">10:15</string>
     <string name="country">Région et pays</string>
-    <string name="welcome">Welcome</string>
+    <string name="welcome">Bienvenue</string>
     <string name="canalId">CanalID</string>
     <string name="canalTitle">CanalTitle</string>
     <string name="canalDesc">Test du canal</string>

@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 /**
  * Activity that allow the user to change the values of TIME_PARENT and TIME_CHILD in AccountActivity.
+ * @see AccountActivity
  */
 public class SettingsActivity extends AppCompatActivity {
 

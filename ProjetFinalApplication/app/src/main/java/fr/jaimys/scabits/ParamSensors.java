@@ -51,7 +51,7 @@ public class ParamSensors {
      */
     private float gyroZ;
 
-    //_________________________________________constructor_________________________________________
+    //_________________________________________constructors_________________________________________
 
     /**
      * Instanciate a ParamSensors object with all the fields equal to zero.

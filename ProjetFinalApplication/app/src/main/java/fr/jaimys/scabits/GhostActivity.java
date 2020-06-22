@@ -7,15 +7,16 @@ import android.os.Bundle;
 import android.util.Log;
 
 /**
- * Activity that will always be in background but never close until the user shut down the application.
- * This activity remove the location listener when the user shut down the application.
+ * Activity that will always be in background but never close until the user shut down the
+ * application. This activity remove the location listener when the user shut down the application.
  */
 public class GhostActivity extends AppCompatActivity {
 
     /**
      * Launch the MainActivity class.
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
-     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut
+     *                           down then this Bundle contains the data it most recently supplied
+     *                           in onSaveInstanceState(Bundle).
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {

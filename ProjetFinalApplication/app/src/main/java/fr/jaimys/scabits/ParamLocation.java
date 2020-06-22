@@ -6,6 +6,8 @@ import android.util.Log;
  * Class that contains the location values of the GPS, like the latitude and the longitude.
  */
 public class ParamLocation {
+
+    //_________________________________________fields_______________________________________________
     /**
      * Latitude of the GPS location.
      */
@@ -15,6 +17,7 @@ public class ParamLocation {
      */
     private double longitude;
 
+    //_________________________________________constructor__________________________________________
     /**
      * Instanciate a ParamLocation object with a latitude and a longitude equal to zero.
      */
@@ -23,6 +26,7 @@ public class ParamLocation {
         this.longitude = 0;
     }
 
+    //_________________________________________methods______________________________________________
     /**
      * Return the latitude.
      * @return the latitude.

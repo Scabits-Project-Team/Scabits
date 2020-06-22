@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      */
     private boolean deniedForever = false;
     /**
-     * Object that contains the longitude and latitude values of the current location of the smartphone.
+     * Object that contains the longitude and latitude values of the current location of the
+     * smartphone.
      */
     public static ParamLocation PARAM_LOCATION;
     /**
@@ -50,8 +51,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     /**
      * Instanciate the PARAM_LOCATION attribute.
-     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains
-     *                           the data it most recently supplied in onSaveInstanceState(Bundle).
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut
+     *                           down then this Bundle contains the data it most recently supplied
+     *                           in onSaveInstanceState(Bundle).
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,8 +87,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     /**
-     * Call the checkPermissions method so that each time the activity comes back in foreground we can check if we still have the
-     * permission to use the GPS.
+     * Call the checkPermissions method so that each time the activity comes back in foreground we
+     * can check if we still have the permission to use the GPS.
      */
     @Override
     protected void onResume() {
@@ -100,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      */
     private void checkPermissions() {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                        this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED){
 
             this.locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
@@ -131,10 +133,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     /**
-     * If the user launch the application for the first time or if he previously denied the permission, it launch
-     * a popup dialogue interface to ask him if he want to activate the GPS.
-     * If the user previously denied the permission and check the Never Ask Again option it simply display a Toast message
-     * to remind him that the application doesn't have access to the GPS.
+     * If the user launch the application for the first time or if he previously denied the
+     * permission, it launch a popup dialogue interface to ask him if he want to activate the GPS.
+     * If the user previously denied the permission and check the Never Ask Again option it
+     * simply display a Toast message to remind him that the application doesn't have access to
+     * the GPS.
      */
     private void requestPermission(){
         if(ActivityCompat.shouldShowRequestPermissionRationale(this,
@@ -176,17 +179,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 this.deniedForever = true;
             }
             else{
-                Toast.makeText(this, "Permissions refusées pour toujours", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Permissions refusées pour toujours",
+                        Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     /**
-     * Callback for the result from requesting permissions. This method is invoked for every call on requestPermissions.
-     * If we have the permission we display a Toast message to remind the user to activate the GPS and restart the application.
+     * Callback for the result from requesting permissions. This method is invoked for every call
+     * on requestPermissions. If we have the permission we display a Toast message to remind the
+     * user to activate the GPS and restart the application.
      * @param requestCode the request code passed in requestPermissions.
      * @param permissions The requested permissions. Never null.
-     * @param grantResults The grant results for the corresponding permissions which is either PERMISSION_GRANTED or PERMISSION_DENIED.
+     * @param grantResults The grant results for the corresponding permissions which is either
+     *                     PERMISSION_GRANTED or PERMISSION_DENIED.
      *                     Never null.
      */
     @Override
@@ -196,26 +202,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED
                     && grantResults[1] == PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(this, "N'oubliez pas d'activer votre GPS et de " +
-                        "relancer l'application s'il n'était pas déjà prêt", Toast.LENGTH_LONG).show();
+                     "relancer l'application s'il n'était pas déjà prêt", Toast.LENGTH_LONG).show();
             }
         }
     }
 
     /**
-     * Called when the location has changed. We change the values of PARAM_LOCATION with the new values.
+     * Called when the location has changed. We change the values of PARAM_LOCATION with the new
+     * values.
      * @param location the updated location. This value cannot be null.
      */
     @Override
     public void onLocationChanged(Location location) {
         MainActivity.PARAM_LOCATION.setLatitude(location.getLatitude());
         MainActivity.PARAM_LOCATION.setLongitude(location.getLongitude());
-        Log.d("ALED","OnLocationChange : " + MainActivity.PARAM_LOCATION.getLatitude() + " " +
-                                                MainActivity.PARAM_LOCATION.getLongitude());
+        Log.d("ALED","OnLocationChange : " + MainActivity.PARAM_LOCATION.getLatitude() +
+                                                 " " + MainActivity.PARAM_LOCATION.getLongitude());
     }
 
     /**
-     * This callback will never be invoked on Android Q and above.
-     * Method never changed but it was needed to override it because of the LocationListener interface.
+     * This callback will never be invoked on Android Q and above.  Method never changed but it was
+     * needed to override it because of the LocationListener interface.
      * @param provider N/A.
      * @param status N/A.
      * @param extras N/A.
@@ -226,9 +233,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     /**
-     * Called when the provider is enabled by the user.
-     * Method never changed but it was needed to override it because of the LocationListener interface.
-     * @param provider the name of the location provider that has become enabled. This value cannot be null.
+     * Called when the provider is enabled by the user. Method never changed but it was needed to
+     * override it because of the LocationListener interface.
+     * @param provider the name of the location provider that has become enabled. This value
+     *                 cannot be null.
      */
     @Override
     public void onProviderEnabled(String provider) {
@@ -236,13 +244,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     /**
-     * Called when the provider is disabled by the user. If requestLocationUpdates is called on an already disabled provider,
-     * this method is called immediately.
-     * Method never changed but it was needed to override it because of the LocationListener interface.
-     * @param provider the name of the location provider that has become disabled. This value cannot be null.
+     * Called when the provider is disabled by the user. If requestLocationUpdates is called on an
+     * already disabled provider, this method is called immediately. Method never changed but it
+     * was needed to override it because of the LocationListener interface.
+     * @param provider the name of the location provider that has become disabled. This value
+     *                 cannot be null.
      */
     @Override
     public void onProviderDisabled(String provider) {
-
     }
 }

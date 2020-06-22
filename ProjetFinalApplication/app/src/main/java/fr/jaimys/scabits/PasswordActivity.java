@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 /**
  * Activity that allow us to connect to the admin settings.
+ * @see SettingsActivity
  */
 public class PasswordActivity extends AppCompatActivity {
 

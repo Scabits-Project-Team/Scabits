@@ -3,9 +3,9 @@ package fr.jaimys.scabits;
 import android.location.LocationManager;
 
 /**
- * Class that contains the locationManager instance with the mainActivity instance where the locationManager is located.
- * This class allow us to have access to the locationManager instance in other classes so that we can remove the listener of location
- * in another class.
+ * Class that contains the locationManager instance with the mainActivity instance where the
+ * locationManager is located. This class allow us to have access to the locationManager instance
+ * in other classes so that we can remove the listener of location in another class.
  */
 public class LocationStorage {
     /**
